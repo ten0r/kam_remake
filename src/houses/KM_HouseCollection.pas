@@ -74,6 +74,7 @@ begin
     ht_Marketplace:   Result := TKMHouseMarket.Create(ID, aHouseType,PosX,PosY, aOwner, aHBS);
     ht_School:        Result := TKMHouseSchool.Create(ID, aHouseType,PosX,PosY, aOwner, aHBS);
     ht_Barracks:      Result := TKMHouseBarracks.Create(ID, aHouseType,PosX,PosY, aOwner, aHBS);
+    ht_TownHall:      Result := TKMHouseTownHall.Create(ID, aHouseType,PosX,PosY, aOwner, aHBS);
     ht_Store:         Result := TKMHouseStore.Create(ID, aHouseType,PosX,PosY, aOwner, aHBS);
     ht_WatchTower:    Result := TKMHouseTower.Create(ID, aHouseType,PosX,PosY, aOwner, aHBS);
     ht_Woodcutters:   Result := TKMHouseWoodcutters.Create(ID, aHouseType,PosX,PosY, aOwner, aHBS);

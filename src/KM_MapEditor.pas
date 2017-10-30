@@ -521,7 +521,10 @@ begin
                                                       end;
                                 MARKER_AISTART:       gMySpectator.Hand.AI.Setup.StartPosition := P;
                                 MARKER_RALLY_POINT:   if gMySpectator.Selected is TKMHouseBarracks then
-                                                        TKMHouseBarracks(gMySpectator.Selected).RallyPoint := P;
+                                                        TKMHouseBarracks(gMySpectator.Selected).RallyPoint := P
+                                                      else
+                                                      if gMySpectator.Selected is TKMHouseTownHall then
+                                                        TKMHouseTownHall(gMySpectator.Selected).RallyPoint := P;
                                 MARKER_CUTTING_POINT: if gMySpectator.Selected is TKMHouseWoodcutters then
                                                         TKMHouseWoodcutters(gMySpectator.Selected).CuttingPoint := P;
                               end;

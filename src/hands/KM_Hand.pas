@@ -403,6 +403,7 @@ procedure TKMHand.WarriorWalkedOut(aUnit: TKMUnitWarrior);
 var G: TKMUnitGroup;
     H: TKMHouse;
     B: TKMHouseBarracks;
+    TH: TKMHouseTownHall;
 begin
   //Warrior could be killed before he walked out, f.e. by script OnTick ---> Actions.UnitKill
   //Then group will be assigned to invalid warrior and never gets removed from game
@@ -429,6 +430,15 @@ begin
         if B.IsRallyPointSet
           and G.CanWalkTo(B.RallyPoint, 0) then
           G.OrderWalk(B.RallyPoint, True);
+      end
+      else
+      if (H is TKMHouseTownHall) then
+      begin
+        TH := TKMHouseTownHall(H);
+        TH.ValidateRallyPoint; // Validate Rally point first. It will set it to a proper walkable position
+        if TH.IsRallyPointSet
+          and G.CanWalkTo(TH.RallyPoint, 0) then
+          G.OrderWalk(TH.RallyPoint, True);
       end;
     end;
   gScriptEvents.ProcWarriorEquipped(aUnit, G);

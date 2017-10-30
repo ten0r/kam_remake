@@ -722,6 +722,7 @@ type
   public
     RX: TRXType;
     TexID1, TexID2: Word;
+    Count: Byte;
     Caption: UnicodeString;
     procedure Paint; override;
   end;
@@ -3949,11 +3950,22 @@ end;
 
 { TKMCostsRow }
 procedure TKMCostsRow.Paint;
+var
+  I: Integer;
 begin
   inherited;
   TKMRenderUI.WriteText(AbsLeft, AbsTop + 4, Width-20, Caption, fnt_Grey, taLeft, $FFFFFFFF);
-  if TexID1 <> 0 then TKMRenderUI.WritePicture(AbsLeft+Width-40, AbsTop, 20, fHeight, [], RX, TexID1);
-  if TexID2 <> 0 then TKMRenderUI.WritePicture(AbsLeft+Width-20, AbsTop, 20, fHeight, [], RX, TexID2);
+  if Count > 0 then
+  begin
+    if TexID1 <> 0 then
+      for I := 0 to Count - 1 do
+        TKMRenderUI.WritePicture(AbsLeft+Width-20*(I+1), AbsTop, 20, fHeight, [], RX, TexID1);
+  end else begin
+    if TexID1 <> 0 then
+      TKMRenderUI.WritePicture(AbsLeft+Width-40, AbsTop, 20, fHeight, [], RX, TexID1);
+    if TexID2 <> 0 then
+      TKMRenderUI.WritePicture(AbsLeft+Width-20, AbsTop, 20, fHeight, [], RX, TexID2);
+  end;
 end;
 
 

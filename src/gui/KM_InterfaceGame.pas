@@ -49,19 +49,20 @@ const
   TB_PAD = 9; // Picked up empirically
   TB_WIDTH = 180; // Max width of sidebar elements
   PAGE_TITLE_Y = 5; // Page title offset
+  STATS_LINES_CNT = 13; //Number of stats (F3) lines
 
   // Shortcuts
   // All shortcuts are in English and are the same for all languages to avoid
   // naming collisions and confusion in discussions
 
-  GUI_HOUSE_COUNT = 27;   // Number of KaM houses to show in GUI
+  GUI_HOUSE_COUNT = 28;   // Number of KaM houses to show in GUI
   GUIHouseOrder: array [1..GUI_HOUSE_COUNT] of THouseType = (
     ht_School, ht_Inn, ht_Quary, ht_Woodcutters, ht_Sawmill,
     ht_Farm, ht_Mill, ht_Bakery, ht_Swine, ht_Butchers,
     ht_Wineyard, ht_GoldMine, ht_CoalMine, ht_Metallurgists, ht_WeaponWorkshop,
     ht_Tannery, ht_ArmorWorkshop, ht_Stables, ht_IronMine, ht_IronSmithy,
     ht_WeaponSmithy, ht_ArmorSmithy, ht_Barracks, ht_Store, ht_WatchTower,
-    ht_FisherHut, ht_Marketplace);
+    ht_FisherHut, ht_Marketplace, ht_TownHall);
 
   // Template for how resources are shown in Barracks
   BARRACKS_RES_COUNT = 11;
@@ -88,9 +89,12 @@ const
     ut_Militia, ut_AxeFighter, ut_Swordsman, ut_Bowman, ut_Arbaletman,
     ut_Pikeman, ut_Hallebardman, ut_HorseScout, ut_Cavalry);
 
+  TownHall_Order: array [0..4] of TUnitType = (
+    ut_Peasant, ut_Militia, ut_Slingshot, ut_MetalBarbarian, ut_Horseman);
+
   // Stats get stacked by UI logic (so that on taller screens they all were
   // in nice pairs, and would stack up only on short screens)
-  StatPlan: array [0..12] of record
+  StatPlan: array [0..STATS_LINES_CNT-1] of record
     HouseType: array [0..3] of THouseType;
     UnitType: array [0..1] of TUnitType;
   end = (
@@ -105,7 +109,7 @@ const
     (HouseType: (ht_ArmorSmithy, ht_WeaponSmithy, ht_None, ht_None); UnitType: (ut_Smith, ut_None)),
     (HouseType: (ht_CoalMine, ht_IronMine, ht_GoldMine, ht_None); UnitType: (ut_Miner, ut_None)),
     (HouseType: (ht_Sawmill, ht_WeaponWorkshop, ht_ArmorWorkshop, ht_None); UnitType: (ut_Lamberjack, ut_None)),
-    (HouseType: (ht_Barracks, ht_WatchTower, ht_None, ht_None); UnitType: (ut_Recruit, ut_None)),
+    (HouseType: (ht_Barracks, ht_TownHall, ht_WatchTower, ht_None); UnitType: (ut_Recruit, ut_None)),
     (HouseType: (ht_Store, ht_School, ht_Inn, ht_Marketplace); UnitType: (ut_Serf, ut_Worker))
     );
 

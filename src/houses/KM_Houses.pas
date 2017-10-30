@@ -262,13 +262,35 @@ type
     function AcceptWareForDelivery(aWareType: TWareType): Boolean;
   end;
 
+
+  TKMHouseTownHall = class(TKMHouse)
+  private
+    fRallyPoint: TKMPoint;
+    procedure SetRallyPoint(aRallyPoint: TKMPoint);
+    function GetRallyPointTexId: Word;
+    function GetTHUnitOrderIndex(aUnitType: TUnitType): Integer;
+  public
+    constructor Create(aUID: Integer; aHouseType: THouseType; PosX, PosY: Integer; aOwner: TKMHandIndex; aBuildState: THouseBuildState);
+    constructor Load(LoadStream: TKMemoryStream); override;
+    procedure Save(SaveStream: TKMemoryStream); override;
+
+    function Equip(aUnitType: TUnitType; aCount: Byte): Byte;
+    function CanEquip(aUnitType: TUnitType): Boolean;
+
+    property RallyPoint: TKMPoint read fRallyPoint write SetRallyPoint;
+    function IsRallyPointSet: Boolean;
+    procedure ValidateRallyPoint;
+
+    property RallyPointTexId: Word read GetRallyPointTexId;
+  end;
+
 implementation
 uses
   SysUtils, Math, KromUtils,
   KM_Game, KM_Terrain, KM_RenderPool, KM_RenderAux, KM_Sound, KM_FogOfWar,
-  KM_Hand, KM_HandsCollection, KM_HandLogistics,
+  KM_Hand, KM_HandsCollection, KM_HandLogistics, KM_InterfaceGame,
   KM_Units_Warrior, KM_HouseBarracks,
-  KM_Resource, KM_ResSound, KM_ResTexts,
+  KM_Resource, KM_ResSound, KM_ResTexts, KM_ResUnits,
   KM_Log, KM_ScriptingEvents, KM_CommonUtils;
 
 const
@@ -521,7 +543,16 @@ procedure TKMHouse.SetPosition(aPos: TKMPoint);
       else
         TKMHouseBarracks(Self).ValidateRallyPoint;
     end
-    else if (Self is TKMHouseWoodcutters) then
+    else
+    if (Self is TKMHouseTownHall) then
+    begin
+      if not aIsRallyPointSet then
+        TKMHouseTownHall(Self).RallyPoint := PointBelowEntrance
+      else
+        TKMHouseTownHall(Self).ValidateRallyPoint;
+    end
+    else
+    if (Self is TKMHouseWoodcutters) then
     begin
       //reset cutting point, because it has max distance limit
       TKMHouseWoodcutters(Self).CuttingPoint := PointBelowEntrance
@@ -1922,6 +1953,131 @@ begin
 end;
 
 
+{TKMHouseTownHall}
+constructor TKMHouseTownHall.Create(aUID: Integer; aHouseType: THouseType; PosX, PosY: Integer; aOwner: TKMHandIndex; aBuildState: THouseBuildState);
+begin
+  inherited;
+
+  fRallyPoint := PointBelowEntrance;
+end;
+
+
+constructor TKMHouseTownHall.Load(LoadStream: TKMemoryStream);
+begin
+  inherited;
+
+  LoadStream.Read(fRallyPoint);
+end;
+
+
+procedure TKMHouseTownHall.Save(SaveStream: TKMemoryStream);
+begin
+  inherited;
+
+  SaveStream.Write(fRallyPoint);
+end;
+
+
+procedure TKMHouseTownHall.SetRallyPoint(aRallyPoint: TKMPoint);
+begin
+  fRallyPoint := gTerrain.GetPassablePointWithinSegment(PointBelowEntrance, aRallyPoint, tpWalk);
+end;
+
+
+function TKMHouseTownHall.IsRallyPointSet: Boolean;
+begin
+   Result := not KMSamePoint(fRallyPoint, PointBelowEntrance);
+end;
+
+
+procedure TKMHouseTownHall.ValidateRallyPoint;
+begin
+  //this will automatically update rally point to valid value
+  SetRallyPoint(fRallyPoint);
+end;
+
+
+function TKMHouseTownHall.GetRallyPointTexId: Word;
+begin
+  Result := 249;
+end;
+
+
+function TKMHouseTownHall.CanEquip(aUnitType: TUnitType): Boolean;
+var
+  THUnitIndex: Integer;
+begin
+  Result := not gHands[fOwner].Locks.UnitBlocked[aUnitType];
+
+  THUnitIndex := GetTHUnitOrderIndex(aUnitType);
+
+  if THUnitIndex <> -1 then
+    Result := Result and (fResourceIn[1] >= TH_TroopCost[THUnitIndex]);  //Can't equip if we don't have a required resource
+end;
+
+
+//Equip a new soldier and make him walk out of the house
+//Return the number of units successfully equipped
+function TKMHouseTownHall.Equip(aUnitType: TUnitType; aCount: Byte): Byte;
+var
+  I, K, THUnitIndex: Integer;
+  Soldier: TKMUnitWarrior;
+  FoundTPR: Boolean;
+begin
+  Result := 0;
+  FoundTPR := False;
+  for I := Low(TownHall_Order) to High(TownHall_Order) do
+    if TownHall_Order[I] = aUnitType then
+    begin
+      FoundTPR := True;
+      Break;
+    end;
+  Assert(FoundTPR);
+
+  THUnitIndex := GetTHUnitOrderIndex(aUnitType);
+  if THUnitIndex = -1 then Exit;
+  
+  
+  for K := 0 to aCount - 1 do
+  begin
+    //Make sure we have enough resources to equip a unit
+    if not CanEquip(aUnitType) then Exit;
+
+    //Take resources
+    for I := 0 to TH_TroopCost[THUnitIndex] - 1 do
+    begin  
+      ResTakeFromIn(wt_Gold); //Do the goldtaking
+      gHands[fOwner].Stats.WareConsumed(wt_Gold);
+    end;
+      
+    //Make new unit
+    Soldier := TKMUnitWarrior(gHands[fOwner].TrainUnit(aUnitType, Entrance));
+    Soldier.SetInHouse(Self); //Put him in the barracks, so if it is destroyed while he is inside he is placed somewhere
+    Soldier.Visible := False; //Make him invisible as he is inside the barracks
+    Soldier.Condition := Round(TROOPS_TRAINED_CONDITION * UNIT_MAX_CONDITION); //All soldiers start with 3/4, so groups get hungry at the same time
+    Soldier.SetActionGoIn(ua_Walk, gd_GoOutside, Self);
+    if Assigned(Soldier.OnUnitTrained) then
+      Soldier.OnUnitTrained(Soldier);
+    Inc(Result);
+  end;
+end;
+
+
+function TKMHouseTownhall.GetTHUnitOrderIndex(aUnitType: TUnitType): Integer;
+var
+  I: Integer;
+begin
+  Result := -1;
+  for I := Low(TownHall_Order) to High(TownHall_Order) do
+  begin
+    if TownHall_Order[I] = aUnitType then
+    begin
+      Result := I;
+      Break;
+    end;
+  end;
+end;
+
 { THouseAction }
 constructor THouseAction.Create(aHouse: TKMHouse; aHouseState: THouseState);
 begin
@@ -1992,10 +2148,10 @@ begin
 
   if SHOW_ATTACK_RADIUS then
     for I := -Round(RANGE_WATCHTOWER_MAX) - 1 to Round(RANGE_WATCHTOWER_MAX) do
-    for K := -Round(RANGE_WATCHTOWER_MAX) - 1 to Round(RANGE_WATCHTOWER_MAX) do
-    if InRange(GetLength(I, K), RANGE_WATCHTOWER_MIN, RANGE_WATCHTOWER_MAX) then
-    if gTerrain.TileInMapCoords(GetPosition.X+K, GetPosition.Y+I) then
-      gRenderAux.Quad(GetPosition.X+K, GetPosition.Y+I, $40FFFFFF);
+      for K := -Round(RANGE_WATCHTOWER_MAX) - 1 to Round(RANGE_WATCHTOWER_MAX) do
+        if InRange(GetLength(I, K), RANGE_WATCHTOWER_MIN, RANGE_WATCHTOWER_MAX) then
+          if gTerrain.TileInMapCoords(GetPosition.X+K, GetPosition.Y+I) then
+            gRenderAux.Quad(GetPosition.X+K, GetPosition.Y+I, $40FFFFFF);
 end;
 
 

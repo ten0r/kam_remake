@@ -413,8 +413,11 @@ procedure TRenderPool.PaintRallyPoints(aPass: Byte);
 var
   B: TKMHouseBarracks;
   WH: TKMHouseWoodcutters;
+  TH: TKMHouseTownHall;
 begin
-  if not (gMySpectator.Selected is TKMHouseBarracks) and not (gMySpectator.Selected is TKMHouseWoodcutters) then
+  if not (gMySpectator.Selected is TKMHouseBarracks) and
+     not (gMySpectator.Selected is TKMHouseTownHall) and
+     not (gMySpectator.Selected is TKMHouseWoodcutters) then
     Exit;
 
   if gMySpectator.Selected is TKMHouseBarracks then
@@ -422,6 +425,13 @@ begin
     B := TKMHouseBarracks(gMySpectator.Selected);
     if B.IsRallyPointSet then
       PaintRallyPoint(B.Entrance, B.RallyPoint, gHands[B.Owner].FlagColor, B.RallyPointTexId, aPass);
+  end
+  else
+  if gMySpectator.Selected is TKMHouseTownHall then
+  begin
+    TH := TKMHouseTownHall(gMySpectator.Selected);
+    if TH.IsRallyPointSet then
+      PaintRallyPoint(TH.Entrance, TH.RallyPoint, gHands[TH.Owner].FlagColor, TH.RallyPointTexId, aPass);
   end
   else
   if gMySpectator.Selected is TKMHouseWoodcutters then
@@ -1379,6 +1389,7 @@ var
   F: TKMPointF;
   WH: TKMHouseWoodcutters;
   B: TKMHouseBarracks;
+  TH: TKMHouseTownHall;
   I, K: Integer;
   Tmp: Single;
   Rad, Slope: Byte;
@@ -1506,6 +1517,12 @@ begin
                                           begin
                                             B := TKMHouseBarracks(gMySpectator.Selected);
                                             PaintRallyPoint(B.Entrance, P, gMySpectator.Hand.FlagColor, B.RallyPointTexId, 0, True);
+                                          end
+                                          else
+                                          if gMySpectator.Selected is TKMHouseTownHall then
+                                          begin
+                                            TH := TKMHouseTownHall(gMySpectator.Selected);
+                                            PaintRallyPoint(TH.Entrance, P, gMySpectator.Hand.FlagColor, TH.RallyPointTexId, 0, True);
                                           end;
                     MARKER_CUTTING_POINT: if gMySpectator.Selected is TKMHouseWoodcutters then
                                           begin

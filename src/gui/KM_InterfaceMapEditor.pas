@@ -1139,6 +1139,8 @@ begin
                   begin
                     if gMySpectator.Selected is TKMHouseBarracks then
                       TKMHouseBarracks(gMySpectator.Selected).RallyPoint := gGameCursor.Cell
+                    else if gMySpectator.Selected is TKMHouseTownHall then
+                      TKMHouseTownHall(gMySpectator.Selected).RallyPoint := gGameCursor.Cell
                     else if gMySpectator.Selected is TKMHouseWoodcutters then
                       TKMHouseWoodcutters(gMySpectator.Selected).CuttingPoint := gGameCursor.Cell;
                   end else

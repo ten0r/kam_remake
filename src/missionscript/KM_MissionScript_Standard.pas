@@ -581,6 +581,8 @@ begin
                             if not fLastHouse.IsDestroyed then //Could be destroyed already by damage
                               if (fLastHouse is TKMHouseBarracks) then
                                 TKMHouseBarracks(fLastHouse).RallyPoint := KMPoint(P[0]+1, P[1]+1)
+                              else if (fLastHouse is TKMHouseTownHall) then
+                                TKMHouseTownHall(fLastHouse).RallyPoint := KMPoint(P[0]+1, P[1]+1)
                               else if (fLastHouse is TKMHouseWoodcutters) then
                                 TKMHouseWoodcutters(fLastHouse).CuttingPoint := KMPoint(P[0]+1, P[1]+1);
                           end
@@ -870,6 +872,12 @@ begin
             AddCommand(ct_UnitAddToLast, [UnitTypeToOldIndex[ut_Recruit]]);
           if TKMHouseBarracks(H).IsRallyPointSet then
             AddCommand(ct_SetRallyPoint, [TKMHouseBarracks(H).RallyPoint.X-1 + aLeftInset, TKMHouseBarracks(H).RallyPoint.Y-1 + aTopInset]);
+        end;
+
+        if H is TKMHouseTownHall then
+        begin
+          if TKMHouseTownHall(H).IsRallyPointSet then
+            AddCommand(ct_SetRallyPoint, [TKMHouseTownHall(H).RallyPoint.X-1 + aLeftInset, TKMHouseTownHall(H).RallyPoint.Y-1 + aTopInset]);
         end;
 
         if H is TKMHouseWoodcutters then

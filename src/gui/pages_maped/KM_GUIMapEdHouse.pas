@@ -15,14 +15,16 @@ type
 
     procedure Create_Store;
     procedure Create_Barracks;
+    procedure Create_TownHall;
     procedure Create_Woodcutters;
 
     procedure HouseChange(Sender: TObject; Shift: TShiftState);
     procedure HouseClickHold(Sender: TObject; AButton: TMouseButton; var aHandled: Boolean);
     procedure BarracksRefresh;
+    procedure TownHallRefresh;
     procedure WoodcuttersRefresh;
     procedure BarracksSelectWare(Sender: TObject);
-    procedure BarracksSetRallyPoint(Sender: TObject);
+    procedure SetRallyPointClick(Sender: TObject);
     procedure WoodcuttersSetRallyPoint(Sender: TObject);
     procedure BarracksChange(Sender: TObject; Shift: TShiftState);
     procedure StoreRefresh;
@@ -54,6 +56,9 @@ type
       Button_Barracks_RallyPoint: TKMButtonFlat;
       Button_BarracksDec100, Button_BarracksDec: TKMButton;
       Button_BarracksInc100, Button_BarracksInc: TKMButton;
+
+    Panel_HouseTownHall: TKMPanel;
+      Button_TownHall_RallyPoint: TKMButtonFlat;
   public
     constructor Create(aParent: TKMPanel);
 
@@ -119,6 +124,7 @@ begin
 
   Create_Store;
   Create_Barracks;
+  Create_TownHall;
   Create_Woodcutters;
 end;
 
@@ -169,13 +175,13 @@ procedure TKMMapEdHouse.Create_Barracks;
 var
   I: Integer;
 begin
-  Panel_HouseBarracks:=TKMPanel.Create(Panel_House,0,76,TB_WIDTH,400);
+  Panel_HouseBarracks := TKMPanel.Create(Panel_House,0,76,TB_WIDTH,400);
 
     Button_Barracks_RallyPoint := TKMButtonFlat.Create(Panel_HouseBarracks, 0, 8, TB_WIDTH, 22, 0);
     Button_Barracks_RallyPoint.CapOffsetY := -11;
     Button_Barracks_RallyPoint.Caption := 'Rally point'; //Todo translate
     Button_Barracks_RallyPoint.Hint := 'Set barracks rally point. Alternatively you can set it via Shift + Right mouse button'; //Todo translate
-    Button_Barracks_RallyPoint.OnClick := BarracksSetRallyPoint;
+    Button_Barracks_RallyPoint.OnClick := SetRallyPointClick;
 
     for I := 1 to BARRACKS_RES_COUNT do
     begin
@@ -213,6 +219,18 @@ begin
 end;
 
 
+procedure TKMMapEdHouse.Create_TownHall;
+begin
+  Panel_HouseTownHall := TKMPanel.Create(Panel_House,0,126,TB_WIDTH,400);
+
+    Button_TownHall_RallyPoint := TKMButtonFlat.Create(Panel_HouseTownHall, 0, 8, TB_WIDTH, 22, 0);
+    Button_TownHall_RallyPoint.CapOffsetY := -11;
+    Button_TownHall_RallyPoint.Caption := 'Rally point'; //Todo translate
+    Button_TownHall_RallyPoint.Hint := 'Set TownHall rally point. Alternatively you can set it via Shift + Right mouse button'; //Todo translate
+    Button_TownHall_RallyPoint.OnClick := SetRallyPointClick;
+end;
+
+
 procedure TKMMapEdHouse.Hide;
 begin
   Panel_House.Hide;
@@ -230,6 +248,7 @@ begin
   if Visible then
     case fHouse.HouseType of
       ht_Barracks:    Button_Barracks_RallyPoint.Down := (gGameCursor.Mode = cmMarkers) and (gGameCursor.Tag1 = MARKER_RALLY_POINT);
+      ht_TownHall:    Button_TownHall_RallyPoint.Down := (gGameCursor.Mode = cmMarkers) and (gGameCursor.Tag1 = MARKER_RALLY_POINT);
       ht_Woodcutters: Button_Woodcutters_CuttingPoint.Down := (gGameCursor.Mode = cmMarkers) and (gGameCursor.Tag1 = MARKER_CUTTING_POINT);
     end;
 end;
@@ -312,11 +331,14 @@ begin
                       else
                         BarracksSelectWare(Button_Barracks[fBarracksItem]);
                     end;
+    ht_TownHall:    begin
+                      Panel_HouseTownHall.Show;
+                      TownHallRefresh;
+                    end;
     ht_Woodcutters: begin
                       Panel_HouseWoodcutters.Show;
                       WoodcuttersRefresh;
                     end;
-    ht_TownHall:;
     else            begin
                       Panel_HouseWoodcutters.Hide;
                       Panel_House.Show;
@@ -349,6 +371,12 @@ begin
   Tmp := TKMHouseBarracks(fHouse).MapEdRecruitCount;
   Button_Barracks_Recruit.Caption := IfThen(Tmp = 0, '-', IntToStr(Tmp));
   Button_Barracks_RallyPoint.Down := (gGameCursor.Mode = cmMarkers) and (gGameCursor.Tag1 = MARKER_RALLY_POINT);
+end;
+
+
+procedure TKMMapEdHouse.TownHallRefresh;
+begin
+  Button_TownHall_RallyPoint.Down := (gGameCursor.Mode = cmMarkers) and (gGameCursor.Tag1 = MARKER_RALLY_POINT);
 end;
 
 
@@ -433,10 +461,18 @@ begin
 end;
 
 
-procedure TKMMapEdHouse.BarracksSetRallyPoint(Sender: TObject);
+procedure TKMMapEdHouse.SetRallyPointClick(Sender: TObject);
+var
+  Btn: TKMButtonFlat;
 begin
-  Button_Barracks_RallyPoint.Down := not Button_Barracks_RallyPoint.Down;
-  if Button_Barracks_RallyPoint.Down then
+  if (Sender <> Button_Barracks_RallyPoint)
+    and (Sender <> Button_TownHall_RallyPoint) then
+    Exit;
+
+  Btn := TKMButtonFlat(Sender);
+
+  Btn.Down := not Btn.Down;
+  if Btn.Down then
   begin
     gGameCursor.Mode := cmMarkers;
     gGameCursor.Tag1 := MARKER_RALLY_POINT;
