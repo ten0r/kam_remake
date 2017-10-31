@@ -518,6 +518,17 @@ begin
 
   {Common data}
   Label_House.Caption        := gRes.Houses[aHouse.HouseType].HouseName;
+  //Calc House caption position
+  HLabelWidth := gRes.Fonts[fnt_Outline].GetTextSize(Label_House.Caption).X;
+  if HLabelWidth <= TB_WIDTH - 2*Image_PlayerFlag.Width then
+    Label_House.Left := 0
+  else if HLabelWidth <= TB_WIDTH - Image_PlayerFlag.Width then
+    Label_House.Left := Image_PlayerFlag.Width
+  else
+    Label_House.Left := Max(TB_WIDTH - HLabelWidth, 0);
+
+  Label_House.Width := TB_WIDTH - Label_House.Left;
+
   Image_PlayerFlag.FlagColor := gHands[aHouse.Owner].FlagColor;
   Image_House_Logo.TexID     := gRes.Houses[aHouse.HouseType].GUIIcon;
   Image_House_Worker.TexID   := gRes.Units[gRes.Houses[aHouse.HouseType].OwnerType].GUIIcon;
