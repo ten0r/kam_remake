@@ -547,8 +547,7 @@ begin
 
   C.Maps[fSelectedMap].NodeCount := EnsureRange(seNodeCount.Value, 0, MAX_CAMP_NODES);
 
-  if fSelectedNode > C.Maps[fSelectedMap].NodeCount - 1 then
-    fSelectedNode := -1;
+  fSelectedNode := C.Maps[fSelectedMap].NodeCount - 1;
 
   UpdateList;
   UpdateNodeCount;
@@ -655,7 +654,7 @@ begin
     for K := 0 to C.Maps[I].NodeCount - 1 do
     begin
       SN := tvList.Items.AddChild(N, 'node ' + IntToStr(K + 1));
-      if fSelectedNode = K then
+      if (fSelectedMap = I) and (fSelectedNode = K) then
         SN.Selected := True;
     end;
   end;
