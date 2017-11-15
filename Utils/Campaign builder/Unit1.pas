@@ -547,7 +547,7 @@ begin
 
   C.Maps[fSelectedMap].NodeCount := EnsureRange(seNodeCount.Value, 0, MAX_CAMP_NODES);
 
-  fSelectedNode := C.Maps[fSelectedMap].NodeCount - 1;
+  fSelectedNode := Min(fSelectedNode, C.Maps[fSelectedMap].NodeCount - 1);
 
   UpdateList;
   UpdateNodeCount;
