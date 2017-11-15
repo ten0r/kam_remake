@@ -14,6 +14,9 @@ rmdir /S /Q "%kam_folder%"
 REM Clean before build to avoid any side-effects from old DCUs
 call bat_clean_src.bat
 
+REM Copy_1
+call bat_copy_pre_pack.bat
+
 REM Pack rx data
 call bat_rx_pack.bat
 
@@ -23,8 +26,8 @@ call bat_rx_pack.bat
 @REM Patch exe
 @REM call bat_patch_exe.bat
 
-REM Copy
-call bat_copy.bat
+REM Copy_2
+call bat_copy_post_pack.bat
 
 @REM Restore local rxx
 @REM call bat_rxx_restore.bat
