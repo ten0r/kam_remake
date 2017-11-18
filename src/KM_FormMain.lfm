@@ -1,11 +1,11 @@
 object FormMain: TFormMain
   Left = 480
-  Height = 805
+  Height = 750
   Top = 135
   Width = 529
   HelpType = htKeyword
   BorderStyle = bsNone
-  ClientHeight = 785
+  ClientHeight = 730
   ClientWidth = 529
   Color = clBtnFace
   Font.Color = clWindowText
@@ -25,14 +25,14 @@ object FormMain: TFormMain
   object StatusBar1: TStatusBar
     Left = 0
     Height = 23
-    Top = 762
+    Top = 707
     Width = 529
-    Panels = <
+    Panels = <    
       item
         Text = 'KMR r7000+ / OpenGL 4.0.0 - Build X.XX.XX.XXXXX'
         Width = 280
-      end
-	  item
+      end    
+      item
         Text = 'Map size: -'
         Width = 110
       end    
