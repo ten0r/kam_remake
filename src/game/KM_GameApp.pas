@@ -326,10 +326,10 @@ begin
 
   if Assigned(fOnCursorUpdate) then
   begin
-    fOnCursorUpdate(1, Format('Cursor: %d:%d', [X, Y]));
-    fOnCursorUpdate(2, Format('Tile: %.1f:%.1f [%d:%d]',
-                              [gGameCursor.Float.X, gGameCursor.Float.Y,
-                              gGameCursor.Cell.X, gGameCursor.Cell.Y]));
+    fOnCursorUpdate(SB_ID_CURSOR_COORD, Format('Cursor: %d:%d', [X, Y]));
+    fOnCursorUpdate(SB_ID_TILE,         Format('Tile: %.1f:%.1f [%d:%d]',
+                               [gGameCursor.Float.X, gGameCursor.Float.Y,
+                               gGameCursor.Cell.X, gGameCursor.Cell.Y]));
     if SHOW_CONTROLS_ID then
     begin
       if gGame <> nil then
@@ -339,7 +339,7 @@ begin
       CtrlID := -1;
       if Ctrl <> nil then
         CtrlID := Ctrl.ID;
-      fOnCursorUpdate(6, Format('Control ID: %d', [CtrlID]));
+      fOnCursorUpdate(SB_ID_CTRL_ID, Format('Control ID: %d', [CtrlID]));
     end;
   end;
 end;
@@ -531,7 +531,7 @@ begin
   end;
 
   if Assigned(fOnCursorUpdate) then
-    fOnCursorUpdate(0, gGame.MapSizeInfo);
+    fOnCursorUpdate(SB_ID_MAP_SIZE, gGame.MapSizeInfo);
 end;
 
 
@@ -567,7 +567,7 @@ begin
   end;
 
   if Assigned(fOnCursorUpdate) then
-    fOnCursorUpdate(0, gGame.MapSizeInfo);
+    fOnCursorUpdate(SB_ID_MAP_SIZE, gGame.MapSizeInfo);
 end;
 
 
@@ -602,7 +602,7 @@ begin
   end;
 
   if Assigned(fOnCursorUpdate) then
-    fOnCursorUpdate(0, gGame.MapSizeInfo);
+    fOnCursorUpdate(SB_ID_MAP_SIZE, gGame.MapSizeInfo);
 end;
 
 
@@ -745,7 +745,7 @@ begin
 
   if not aForPrintScreen and (gGame <> nil) then
     if Assigned(fOnCursorUpdate) then
-      fOnCursorUpdate(5, 'Object: ' + IntToStr(gGameCursor.ObjectUID));
+      fOnCursorUpdate(SB_ID_OBJECT, 'Object: ' + IntToStr(gGameCursor.ObjectUID));
 end;
 
 
@@ -814,7 +814,7 @@ begin
 
     //StatusBar
     if (gGame <> nil) and not gGame.IsPaused and Assigned(fOnCursorUpdate) then
-        fOnCursorUpdate(3, 'Time: ' + TimeToString(gGame.MissionTime));
+        fOnCursorUpdate(SB_ID_TIME, 'Time: ' + TimeToString(gGame.MissionTime));
   end;
 end;
 
