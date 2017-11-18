@@ -745,7 +745,7 @@ begin
 
   if not aForPrintScreen and (gGame <> nil) then
     if Assigned(fOnCursorUpdate) then
-      fOnCursorUpdate(SB_ID_OBJECT, 'Object: ' + IntToStr(gGameCursor.ObjectUID));
+      fOnCursorUpdate(SB_ID_OBJECT, 'Obj: ' + IntToStr(gGameCursor.ObjectUID));
 end;
 
 

@@ -36,35 +36,35 @@ object FormMain: TFormMain
     Height = 20
     Panels = <
       item
-        Text = 'KMR r7000+ / OpenGL 4.0.0 - Build X.XX.XX.XXXXX'
-        Width = 280
+        Text = 'KMR r7000+ / OpenGL 4.0.0 - Build 9.99.99.99999'
+        Width = 275
       end
-	  item
-        Text = 'Map size: -'
+      item
+        Text = 'Map size: 999x999'
         Width = 110
       end
       item
         Text = 'Cursor: 1999:1999'
-        Width = 120
+        Width = 105
       end
       item
         Text = 'Tile: 999.9:999.9 [999:999]'
-        Width = 150
+        Width = 140
       end
       item
-        Text = 'Time:'
+        Text = 'Time: 99:99:99'
         Width = 90
       end
       item
-        Text = 'fps'
-        Width = 80
+        Text = '999.9 FPS (999)'
+        Width = 85
       end
       item
-        Text = 'Object '
-        Width = 100
+        Text = 'Obj: 99999999'
+        Width = 90
       end
       item
-        Text = 'Control ID: '
+        Text = 'Control ID: 9999'
         Width = 80
       end>
   end
