@@ -514,13 +514,13 @@ begin
 end;
 
 
-//Revert all controls to defaults (e.g. before MP session)
 procedure TFormMain.Civilians1Click(Sender: TObject);
 begin
   gRes.ExportUnitAnim(CITIZEN_MIN, CITIZEN_MAX);
 end;
 
 
+//Revert all controls to defaults (e.g. before MP session)
 procedure TFormMain.ControlsReset;
   procedure ResetGroupBox(aBox: TGroupBox);
   var
