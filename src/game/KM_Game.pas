@@ -1598,7 +1598,7 @@ begin
     if fGameMode in [gmSingle, gmCampaign, gmMulti, gmMultiSpectate] then
     begin
       DeleteFile(SaveName('basesave', EXT_SAVE_BASE, IsMultiplayer));
-      KMCopyFile(ChangeFileExt(aPathName, '.bas'), SaveName('basesave', EXT_SAVE_BASE, IsMultiplayer));
+      KMCopyFile(ChangeFileExt(aPathName, '.' + EXT_SAVE_BASE), SaveName('basesave', EXT_SAVE_BASE, IsMultiplayer));
     end;
 
     //Repeat mission init if necessary
