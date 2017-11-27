@@ -262,6 +262,7 @@ const
   EXT_SAVE_REPLAY = 'rpl';
   EXT_SAVE_MAIN = 'sav';
   EXT_SAVE_BASE = 'bas';
+  EXT_FILE_SCRIPT = 'script';
 
 type
   TKMHandIndex = {type} ShortInt;
