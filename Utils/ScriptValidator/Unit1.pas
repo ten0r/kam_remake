@@ -6,16 +6,19 @@ uses
   KM_Defaults, KM_Scripting, shellapi;
 
 type
+  TKMFileOrFolder = (fof_None, fof_File, fof_Folder);
+
   TForm1 = class(TForm)
     Edit1: TEdit;
     btnBrowseFile: TButton;
     Label1: TLabel;
     btnValidate: TButton;
-    OpenDialog1: TOpenDialog;
+    OpenDialog: TOpenDialog;
     Memo1: TMemo;
     Label2: TLabel;
     btnValidateAll: TButton;
     btnBrowsePath: TButton;
+    FileOpenDlg: TFileOpenDialog;
     procedure FormCreate(Sender: TObject);
     procedure btnBrowseFileClick(Sender: TObject);
     procedure btnValidateClick(Sender: TObject);
@@ -25,22 +28,20 @@ type
     procedure btnBrowsePathClick(Sender: TObject);
   private
     fScripting: TKMScripting;
-    IsValidatePath : Boolean;
-    sListFileInFolder : TStringList;
+    fIsValidatePath : TKMFileOrFolder;
+    fListFileInFolder : TStringList;
 
     procedure FindFiles(aPath: String; out aList: TStringList);
     procedure Validate(aPath: string; aReportGood: Boolean);
     procedure WMDropFiles(var Msg: TWMDropFiles); message WM_DROPFILES;
-    procedure ComponentReEnabled(aEnabled : Boolean);
+    procedure EnableFormComponents(aEnabled : Boolean);
   end;
 
 var
   Form1: TForm1;
 implementation
 uses
-  KM_Maps;
-const
-  EXT_FILE_SCRIPT = '.script';
+  KM_Maps, KM_CommonUtils;
 
 {$R *.dfm}
 
@@ -48,66 +49,102 @@ procedure TForm1.FindFiles(aPath: String; out aList: TStringList);
 var
   SearchRec:TSearchRec;
 begin
-  FindFirst(aPath+PathDelim+'*', faAnyFile, SearchRec);
+  FindFirst(aPath + PathDelim + '*', faAnyFile, SearchRec);
   repeat
     if (SearchRec.Name <> '.') and (SearchRec.Name <> '..') then
       if (SearchRec.Attr and faDirectory = faDirectory) then
         FindFiles(aPath + PathDelim + SearchRec.Name, aList)
       else
-        if SameText(ExtractFileExt(SearchRec.Name), EXT_FILE_SCRIPT) then
+        if SameText(ExtractFileExt(SearchRec.Name), '.' + EXT_FILE_SCRIPT) then
           aList.Add(aPath + PathDelim + SearchRec.Name);
   until (FindNext(SearchRec) <> 0);
   FindClose(SearchRec);
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  KmrDir: String;
 begin
-  Caption                := 'KaM Remake Script Validator (' + GAME_REVISION + ')';
-  OpenDialog1.InitialDir := ExtractFilePath(ParamStr(0));
-  fScripting             := TKMScriptingCreator.CreateScripting(nil);
-  sListFileInFolder := TStringList.Create;
+  KmrDir := ExtractFilePath(ParamStr(0));
+
+  Caption                   := 'KaM Remake Script Validator (' + GAME_REVISION + ')';
+  OpenDialog.InitialDir     := KmrDir;
+  FileOpenDlg.DefaultFolder := KmrDir;
+  fScripting                := TKMScriptingCreator.CreateScripting(nil);
+  fListFileInFolder         := TStringList.Create;
   DragAcceptFiles(Handle, True);
+  Edit1Change(nil);
 end;
 
 
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(fScripting);
-  sListFileInFolder.Free;
+  fListFileInFolder.Free;
   DragAcceptFiles(Handle, False);
 end;
 
 
-procedure TForm1.btnBrowseClick(Sender: TObject);
+procedure TForm1.btnBrowseFileClick(Sender: TObject);
 begin
-  if OpenDialog1.Execute then
-    Edit1.Text := OpenDialog1.FileName;
+  if not OpenDialog.Execute then Exit;
+  Edit1.Text := OpenDialog.FileName;
 end;
 
 
 procedure TForm1.btnBrowsePathClick(Sender: TObject);
 var
-  DirValidate : String;
+  DirToValidate : String;
 begin
-  if not SelectDirectory('Select the folder to Validate scripts', '', DirValidate) then Exit;
-  Edit1.Text := DirValidate;
-end;
-
-procedure TForm1.Edit1Change(Sender: TObject);
-begin
-  If (GetFileAttributes(PWideCHar(TEdit(Sender).Text)) and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY then
+  if Win32MajorVersion >= 6 then // For Vista+ Windows version we can use FileOpenDlg
   begin
-    IsValidatePath := true;
-    Memo1.Text := 'Selected folders!';
-  end
-  else
-  begin
-    IsValidatePath := false;
-    Memo1.Text := 'Selected Files!';
+    FileOpenDlg.FileName := '';
+    if FileOpenDlg.Execute then
+    begin
+      FileOpenDlg.DefaultFolder := FileOpenDlg.FileName;
+      Edit1.Text := FileOpenDlg.FileName;
+    end;
+  end else begin // Fine for XP+
+    if SelectDirectory('Select folder to Validate scripts', '', DirToValidate) then
+      Edit1.Text := DirToValidate;
   end;
 end;
 
-procedure TForm1.ComponentReEnabled(aEnabled: Boolean);
+
+procedure TForm1.Edit1Change(Sender: TObject);
+begin
+  fIsValidatePath := fof_None;
+
+  if FileExists(Edit1.Text) and (ExtractFileExt(Edit1.Text) = '.' + EXT_FILE_SCRIPT) then
+    fIsValidatePath := fof_File
+  else
+    if SysUtils.DirectoryExists(Edit1.Text) then
+      fIsValidatePath := fof_Folder;
+
+  case fIsValidatePath of
+    fof_None:   begin
+                  if Sender <> nil then
+                    Memo1.Text := 'Wrong script file/folder path selected'
+                  else
+                    Memo1.Text := 'Select file or folder to validate';
+                  btnValidate.Enabled := False;
+                  btnValidate.Caption := 'Validate';
+                end;
+    fof_File:   begin
+                  Memo1.Text := 'File selected';
+                  btnValidate.Enabled := True;
+                  btnValidate.Caption := 'Validate file';
+                end;
+    fof_Folder: begin
+                  Memo1.Text := 'Folder selected';
+                  btnValidate.Enabled := True;
+                  btnValidate.Caption := 'Validate folder';
+                end;
+  end;
+end;
+
+
+procedure TForm1.EnableFormComponents(aEnabled: Boolean);
 begin
   btnBrowsePath.Enabled := aEnabled;
   btnBrowseFile.Enabled := aEnabled;
@@ -116,38 +153,39 @@ begin
   Edit1.Enabled := aEnabled;
 end;
 
+
 procedure TForm1.btnValidateClick(Sender: TObject);
 var
   I : Integer;
 begin
-  ComponentReEnabled(false);
+  EnableFormComponents(False);
 
   Memo1.Lines.Clear;
-  if IsValidatePath then
+  if fIsValidatePath = fof_Folder then
   begin
     ExcludeTrailingPathDelimiter(Edit1.Text);
-    if not DirectoryExists(Edit1.Text) then
+    if not SysUtils.DirectoryExists(Edit1.Text) then
       Memo1.Lines.Append('Directory not found ' + Edit1.Text)
     else
     begin
       Memo1.Lines.Append('Search for files in a folder ...');
-      sListFileInFolder.Clear;
-      FindFiles(Edit1.Text, sListFileInFolder);
-      Memo1.Lines.Append('Check '+Edit1.Text);
-      if sListFileInFolder.Count = 0 then
+      fListFileInFolder.Clear;
+      Memo1.Lines.Append('Check ' + Edit1.Text);
+      FindFiles(Edit1.Text, fListFileInFolder);
+      if fListFileInFolder.Count = 0 then
         Memo1.Lines.Append('No files in a directory ' + Edit1.Text)
       else
       begin
-        Memo1.Lines.Append('Files in the folder: '+IntToStr(sListFileInFolder.Count));
-        for I := 0 to sListFileInFolder.Count-1 do
-          Validate(sListFileInFolder.Strings[I], True);
-        Memo1.Lines.Append('Checked ' + IntToStr(sListFileInFolder.Count));
+        Memo1.Lines.Append('Files in folder: ' + IntToStr(fListFileInFolder.Count));
+        for I := 0 to fListFileInFolder.Count - 1 do
+          Validate(fListFileInFolder.Strings[I], True);
+        Memo1.Lines.Append('Checked ' + IntToStr(fListFileInFolder.Count));
       end;
     end;
-  end else
+  end else if fIsValidatePath = fof_File then
     Validate(Edit1.Text, True);
 
-  ComponentReEnabled(true);
+  EnableFormComponents(True);
 end;
 
 
@@ -155,37 +193,37 @@ procedure TForm1.btnValidateAllClick(Sender: TObject);
 var
   I: Integer;
 begin
-  ComponentReEnabled(false);
+  EnableFormComponents(False);
 
   Memo1.Lines.Clear;
 
   Memo1.Lines.Append('Check ' + ExtractFilePath(ParamStr(0)));
   // Exe path
-  TKMapsCollection.GetAllMapPaths(ExtractFilePath(ParamStr(0)), sListFileInFolder);
-  if sListFileInFolder.Count = 0 then
+  TKMapsCollection.GetAllMapPaths(ExtractFilePath(ParamStr(0)), fListFileInFolder);
+  if fListFileInFolder.Count = 0 then
     Memo1.Lines.Append('No files in a directory :(')
   else
   begin
-    Memo1.Lines.Append('Files in the folder: '+IntToStr(sListFileInFolder.Count));
-    for I := 0 to sListFileInFolder.Count - 1 do
-      Validate(ChangeFileExt(sListFileInFolder[I], EXT_FILE_SCRIPT), False);
+    Memo1.Lines.Append('Files in the folder: '+IntToStr(fListFileInFolder.Count));
+    for I := 0 to fListFileInFolder.Count - 1 do
+      Validate(ChangeFileExt(fListFileInFolder[I], '.' + EXT_FILE_SCRIPT), False);
 
-    Memo1.Lines.Append('Checked ' + IntToStr(sListFileInFolder.Count) + ' in .\');
+    Memo1.Lines.Append('Checked ' + IntToStr(fListFileInFolder.Count) + ' in .\');
   end;
   // Utils path
   Memo1.Lines.Append('Check ' + ExpandFileName(ExtractFilePath(ParamStr(0)) + '..\..\'));
-  TKMapsCollection.GetAllMapPaths(ExpandFileName(ExtractFilePath(ParamStr(0)) + '..\..\'), sListFileInFolder);
-  if sListFileInFolder.Count = 0 then
+  TKMapsCollection.GetAllMapPaths(ExpandFileName(ExtractFilePath(ParamStr(0)) + '..\..\'), fListFileInFolder);
+  if fListFileInFolder.Count = 0 then
     Memo1.Lines.Append('No files in a directory :(')
   else
   begin
-    Memo1.Lines.Append('Files in the folder: '+IntToStr(sListFileInFolder.Count));
-    for I := 0 to sListFileInFolder.Count - 1 do
-      Validate(ChangeFileExt(sListFileInFolder[I], EXT_FILE_SCRIPT), False);
+    Memo1.Lines.Append('Files in the folder: '+IntToStr(fListFileInFolder.Count));
+    for I := 0 to fListFileInFolder.Count - 1 do
+      Validate(ChangeFileExt(fListFileInFolder[I], '.' + EXT_FILE_SCRIPT), False);
 
-    Memo1.Lines.Append('Checked ' + IntToStr(sListFileInFolder.Count));
+    Memo1.Lines.Append('Checked ' + IntToStr(fListFileInFolder.Count));
   end;
-  ComponentReEnabled(true);
+  EnableFormComponents(True);
 end;
 
 procedure TForm1.Validate(aPath: string; aReportGood: Boolean);
@@ -199,12 +237,14 @@ begin
     Exit;
   end;
 
-  CampaignFile := ExtractFilePath(aPath) + '..\campaigndata' + EXT_FILE_SCRIPT;
+  fScripting.ErrorHandler.Clear;
+
+  CampaignFile := ExtractFilePath(aPath) + '..\campaigndata.' + EXT_FILE_SCRIPT;
   fScripting.LoadFromFile(aPath, CampaignFile, nil);
 
   txt := StringReplace(fScripting.ErrorHandler.ErrorString.GameMessage, '|', sLineBreak, [rfReplaceAll]);
 
-  if fScripting.ErrorHandler.WarningsString.GameMessage <> '' then
+  if fScripting.ErrorHandler.HasWarnings then
   begin
     if txt <> '' then
       txt := txt + sLineBreak;

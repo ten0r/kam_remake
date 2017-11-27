@@ -74,6 +74,7 @@ type
     procedure AppendErrorStr(const aErrorString: UnicodeString; aDetailedErrorString: UnicodeString = '');
     procedure AppendWarningStr(const aWarningString: UnicodeString; aDetailedWarningString: UnicodeString = '');
     procedure HandleErrors;
+    procedure Clear;
   end;
 
 
@@ -1533,6 +1534,15 @@ procedure TKMScriptErrorHandler.HandleErrors;
 begin
   HandleScriptError(se_CompileError, AppendErrorPrefix('Script compile errors:' + EolW, fErrorString));
   HandleScriptError(se_CompileWarning, AppendErrorPrefix('Script compile warnings:' + EolW, fWarningsString));
+end;
+
+
+procedure TKMScriptErrorHandler.Clear;
+begin
+  fErrorString.GameMessage := '';
+  fErrorString.LogMessage := '';
+  fWarningsString.GameMessage := '';
+  fWarningsString.LogMessage := '';
 end;
 
 
