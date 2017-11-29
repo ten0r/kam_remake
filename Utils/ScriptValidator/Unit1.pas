@@ -1,8 +1,11 @@
 unit Unit1;
+{$WARN SYMBOL_PLATFORM OFF}
+{$WARN UNIT_PLATFORM OFF}
 
 interface
 uses
-  Windows, Messages, Classes, Controls, Dialogs, Forms, StdCtrls, StrUtils, SysUtils, FileCtrl,
+  Windows, Messages, Classes, Controls, Dialogs, Forms, StdCtrls, StrUtils, SysUtils,
+  FileCtrl,
   KM_Defaults, KM_Scripting, shellapi;
 
 type
@@ -31,8 +34,10 @@ type
     fIsValidatePath : TKMFileOrFolder;
     fListFileInFolder : TStringList;
 
+    procedure ValidateFileList; overload;
+    procedure ValidateDir(aDir: String); overload;
     procedure FindFiles(aPath: String; out aList: TStringList);
-    procedure Validate(aPath: string; aReportGood: Boolean);
+    function Validate(aPath: string; aReportGood: Boolean): Boolean;
     procedure WMDropFiles(var Msg: TWMDropFiles); message WM_DROPFILES;
     procedure EnableFormComponents(aEnabled : Boolean);
   end;
@@ -155,11 +160,8 @@ end;
 
 
 procedure TForm1.btnValidateClick(Sender: TObject);
-var
-  I : Integer;
 begin
   EnableFormComponents(False);
-
   Memo1.Lines.Clear;
   if fIsValidatePath = fof_Folder then
   begin
@@ -168,19 +170,9 @@ begin
       Memo1.Lines.Append('Directory not found ' + Edit1.Text)
     else
     begin
-      Memo1.Lines.Append('Search for files in a folder ...');
       fListFileInFolder.Clear;
-      Memo1.Lines.Append('Check ' + Edit1.Text);
       FindFiles(Edit1.Text, fListFileInFolder);
-      if fListFileInFolder.Count = 0 then
-        Memo1.Lines.Append('No files in a directory ' + Edit1.Text)
-      else
-      begin
-        Memo1.Lines.Append('Files in folder: ' + IntToStr(fListFileInFolder.Count));
-        for I := 0 to fListFileInFolder.Count - 1 do
-          Validate(fListFileInFolder.Strings[I], True);
-        Memo1.Lines.Append('Checked ' + IntToStr(fListFileInFolder.Count));
-      end;
+      ValidateFileList;
     end;
   end else if fIsValidatePath = fof_File then
     Validate(Edit1.Text, True);
@@ -189,48 +181,52 @@ begin
 end;
 
 
-procedure TForm1.btnValidateAllClick(Sender: TObject);
+procedure TForm1.ValidateFileList;
 var
-  I: Integer;
+  I,ErrFilesCnt: Integer;
+begin
+  ErrFilesCnt := 0;
+  if fListFileInFolder.Count = 0 then
+    Memo1.Lines.Append('No files in a directory :(')
+  else
+  begin
+    Memo1.Lines.Append('Files in the folder: '+IntToStr(fListFileInFolder.Count));
+    for I := 0 to fListFileInFolder.Count - 1 do
+      if not Validate(ChangeFileExt(fListFileInFolder[I], '.' + EXT_FILE_SCRIPT), False) then
+        Inc(ErrFilesCnt);
+
+    Memo1.Lines.Append(Format('Checked: %d. Script files with errors: %d', [fListFileInFolder.Count, ErrFilesCnt]));
+  end;
+end;
+
+
+procedure TForm1.ValidateDir(aDir: String);
+begin
+  Memo1.Lines.Clear;
+  Memo1.Lines.Append('Check ' + aDir);
+  TKMapsCollection.GetAllMapPaths(aDir, fListFileInFolder);
+  ValidateFileList;
+end;
+
+
+procedure TForm1.btnValidateAllClick(Sender: TObject);
 begin
   EnableFormComponents(False);
 
-  Memo1.Lines.Clear;
-
-  Memo1.Lines.Append('Check ' + ExtractFilePath(ParamStr(0)));
   // Exe path
-  TKMapsCollection.GetAllMapPaths(ExtractFilePath(ParamStr(0)), fListFileInFolder);
-  if fListFileInFolder.Count = 0 then
-    Memo1.Lines.Append('No files in a directory :(')
-  else
-  begin
-    Memo1.Lines.Append('Files in the folder: '+IntToStr(fListFileInFolder.Count));
-    for I := 0 to fListFileInFolder.Count - 1 do
-      Validate(ChangeFileExt(fListFileInFolder[I], '.' + EXT_FILE_SCRIPT), False);
-
-    Memo1.Lines.Append('Checked ' + IntToStr(fListFileInFolder.Count) + ' in .\');
-  end;
+  ValidateDir(ExtractFilePath(ParamStr(0)));
   // Utils path
-  Memo1.Lines.Append('Check ' + ExpandFileName(ExtractFilePath(ParamStr(0)) + '..\..\'));
-  TKMapsCollection.GetAllMapPaths(ExpandFileName(ExtractFilePath(ParamStr(0)) + '..\..\'), fListFileInFolder);
-  if fListFileInFolder.Count = 0 then
-    Memo1.Lines.Append('No files in a directory :(')
-  else
-  begin
-    Memo1.Lines.Append('Files in the folder: '+IntToStr(fListFileInFolder.Count));
-    for I := 0 to fListFileInFolder.Count - 1 do
-      Validate(ChangeFileExt(fListFileInFolder[I], '.' + EXT_FILE_SCRIPT), False);
+  ValidateDir(ExpandFileName(ExtractFilePath(ParamStr(0)) + '..\..\'));
 
-    Memo1.Lines.Append('Checked ' + IntToStr(fListFileInFolder.Count));
-  end;
   EnableFormComponents(True);
 end;
 
-procedure TForm1.Validate(aPath: string; aReportGood: Boolean);
+function TForm1.Validate(aPath: string; aReportGood: Boolean): Boolean;
 var
   CampaignFile: UnicodeString;
   txt:          string;
 begin
+  Result := True;
   if not FileExists(aPath) and aReportGood then
   begin
     Memo1.Lines.Append('File not found ' + aPath);
@@ -253,8 +249,10 @@ begin
   end;
 
   if txt <> '' then
-    Memo1.Lines.Append(aPath + sLineBreak + txt)
-  else
+  begin
+    Memo1.Lines.Append(aPath + sLineBreak + txt);
+    Result := False;
+  end else
     if aReportGood then
       Memo1.Lines.Append(aPath + ' - No errors :)');
 end;
