@@ -3,7 +3,7 @@ unit KM_Main;
 interface
 uses
   {$IFDEF MSWindows} Windows, {$ENDIF}
-  KM_FormMain, KM_FormLoading,
+  KM_FormMain, KM_FormLoading, KM_Maps,
   KM_Settings, KM_Resolutions;
 
 
@@ -19,6 +19,7 @@ type
 
     fMainSettings: TMainSettings;
     fResolutions: TKMResolutions;
+    fMapCacheUpdater: TTMapsCacheUpdater;
 
     procedure DoRestore(Sender: TObject);
     procedure DoActivate(Sender: TObject);
@@ -73,7 +74,7 @@ uses
   {$IFDEF MSWindows} MMSystem, {$ENDIF}
   {$IFDEF USE_MAD_EXCEPT} KM_Exceptions, {$ENDIF}
   SysUtils, StrUtils, Math, KromUtils,
-  KM_GameApp, KM_Maps,
+  KM_GameApp,
   KM_Log, KM_CommonUtils, KM_Defaults, KM_Points;
 
 
@@ -230,6 +231,8 @@ begin
   //Reset the resolution
   FreeThenNil(fResolutions);
   FreeThenNil(fMainSettings);
+  if fMapCacheUpdater <> nil then
+    fMapCacheUpdater.Stop;
   FreeThenNil(gGameApp);
   FreeThenNil(gLog);
 
@@ -395,7 +398,7 @@ end;
 procedure TKMMain.MapCacheUpdate;
 begin
   //Thread frees itself automatically
-  TTMapsCacheUpdater.Create([mfSP, mfMP, mfDL]);
+  fMapCacheUpdater := TTMapsCacheUpdater.Create([mfSP, mfMP, mfDL]);
 end;
 
 
