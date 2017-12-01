@@ -2,9 +2,9 @@ unit Unit1;
 {$I ..\..\KaM_Remake.inc}
 interface
 uses
-  Windows, Classes, ComCtrls, Controls, Dialogs, ExtCtrls, Forms,
+  Windows, Classes, ComCtrls, Controls, Dialogs, ExtDlgs, ExtCtrls, Forms,
   Graphics, Mask, Math, Spin, StdCtrls, SysUtils,
-  KM_Defaults, KM_Campaigns, KM_Pics, KM_ResSpritesEdit, KromUtils;
+  KM_Defaults, KM_Campaigns, KM_Pics, KM_ResSpritesEdit, KromUtils, inifiles;
 
 type
   TForm1 = class(TForm)
@@ -36,6 +36,10 @@ type
     GroupBox1: TGroupBox;
     imgNewFlag: TImage;
     imgNewNode: TImage;
+    cbShowBriefingPosition: TCheckBox;
+    edtName: TEdit;
+    Label3: TLabel;
+    btnUnloadCMP: TButton;
     procedure btnLoadPictureClick(Sender: TObject);
     procedure btnLoadCMPClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -56,6 +60,8 @@ type
     procedure Image1DragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure NewObjectImgMouseDown(Sender: TObject; Button: TMouseButton;
                                     Shift: TShiftState; X, Y: Integer);
+    procedure cbShowBriefingPositionClick(Sender: TObject);
+    procedure btnUnloadCMPClick(Sender: TObject);
   private
     fExePath: string;
     fCampaignsPath: string;
@@ -67,8 +73,14 @@ type
     fSelectedMap: Integer;
     fSelectedNode: Integer;
     PrevX, PrevY: Integer;
-  public
+
     procedure LoadCmp(aFileName : String);
+
+    function GetCharset(aLang: string): TFontCharset;
+    procedure LoadCampaignName(aFileName, aLocale: string);
+    procedure SaveCampaignName(aFileName: string);
+    procedure CreateDefaultLocaleLibxTemplate(aFileName: string);
+  public
     procedure FlagDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FlagMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FlagEnter(Sender: TObject);
@@ -77,8 +89,6 @@ type
     procedure NodeEnter(Sender: TObject);
 
     procedure FlagNodeLeave(Sender: TObject);
-
-    procedure CreateDefaultLocaleLibxTemplate(aFileName: string);
 
     procedure SelectMap;
     procedure RefreshBackground;
@@ -89,13 +99,13 @@ type
     procedure UpdateNodeCount;
     procedure DrawFlagNumber(aIndexMap: Integer);
     procedure DrawNodeNumber(aIndexNode: Integer);
-  end;
 
+  end;
 
 var
   Form1: TForm1;
   C: TKMCampaign;
-
+  Locale: String;
 implementation
 {$R *.dfm}
 
@@ -109,6 +119,8 @@ begin
 
   fExePath := ExtractFilePath(ParamStr(0));
   fCampaignsPath := ExpandFileName(fExePath + '..\..\Campaigns\');
+
+  Locale := 'eng';
 
   C := TKMCampaign.Create;
   fSelectedMap := -1;
@@ -138,6 +150,8 @@ begin
 
   seMapCountChange(nil); //Initialise it to 1 map
 
+  cbShowBriefingPositionClick(nil);
+
   if FileExists(ParamStr(1)) then
     LoadCmp(ParamStr(1));
 end;
@@ -147,6 +161,7 @@ procedure TForm1.FormDestroy(Sender: TObject);
 begin
   fSprites.Free;
 end;
+
 
 procedure TForm1.LoadCmp(aFileName : String);
 var
@@ -171,6 +186,7 @@ begin
   UpdateFlagCount;
   RefreshBackground;
   RefreshFlags;
+
   //Hide nodes that might have been open from the last campaign
   for I := 0 to Length(imgNodes) - 1 do
     imgNodes[I].Visible := False;
@@ -310,6 +326,7 @@ begin
   StatusBar1.Panels[2].Text := 'Map #' + IntToStr(TImage(Sender).Tag + 1);
 end;
 
+
 procedure TForm1.FlagMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
   Img: TImage;
@@ -348,10 +365,12 @@ begin
   StatusBar1.Panels[2].Text := 'Node #' + IntToStr(TImage(Sender).Tag + 1);
 end;
 
+
 procedure TForm1.FlagNodeLeave(Sender: TObject);
 begin
   StatusBar1.Panels[2].Text := '';
 end;
+
 
 procedure TForm1.NodeMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
@@ -373,21 +392,79 @@ begin
 end;
 
 
+function TForm1.GetCharset(aLang: string): TFontCharset;
+begin
+  if Pos(aLang, 'bel,rus,bul,ukr') <> 0 then
+    Result := RUSSIAN_CHARSET
+  else if Pos(aLang, 'pol,hun,cze,svk,rom') <> 0 then
+    Result := EASTEUROPE_CHARSET
+  else if Pos(aLang, 'tur') <> 0 then
+    Result := TURKISH_CHARSET
+  else if Pos(aLang, 'lit,lat') <> 0 then
+    Result := BALTIC_CHARSET
+  else if Pos(aLang, 'eng,spa,ita,nor,chn,dut,est,ptb,fre,ger,jpn,swe') <> 0 then
+    Result := ANSI_CHARSET
+  else
+    Result := DEFAULT_CHARSET;
+end;
+
+
+procedure TForm1.LoadCampaignName(aFileName, aLocale: string);
+var
+  LibxFile: TStringList;
+  I : Integer;
+  VarText : String;
+  VarIndex: Integer;
+begin
+  if not FileExists(Format(aFileName, [aLocale])) then Exit;
+  LibxFile := TStringList.Create;
+  LibxFile.LoadFromFile(Format(aFileName, [aLocale]));
+  edtName.Font.Charset := GetCharset(aLocale);
+
+  for I := 0 to LibxFile.Count - 1 do
+  begin
+    VarText := LibxFile.Strings[I];
+    VarIndex := Pos('0:', VarText);
+    if VarIndex > 0 then
+    begin
+      edtName.Text := Copy(VarText, VarIndex + 2, Length(VarText));
+      Break;
+    end;
+  end;
+  LibxFile.Free;
+end;
+
+
+procedure TForm1.SaveCampaignName(aFileName: string);
+var
+  LibxFile: TStringList;
+  I: Integer;
+begin
+  LibxFile := TStringList.Create;
+  LibxFile.LoadFromFile(aFileName);
+  for I := 0 to LibxFile.Count - 1 do
+    if Pos('0:', LibxFile.Strings[I]) > 0 then
+    begin
+      LibxFile.Strings[I] := '0:' + edtName.Text;
+      Break;
+    end;
+  LibxFile.SaveToFile(aFileName);
+  LibxFile.Free;
+end;
+
+
 procedure TForm1.CreateDefaultLocaleLibxTemplate(aFileName: string);
 var
   LibxFile: TextFile;
   I: Integer;
 begin
-  if FileExists(aFileName) then
-    Exit;
-
   AssignFile(LibxFile, aFileName);
   try
     ReWrite(LibxFile);
 
     Writeln(LibxFile, '');
     Writeln(LibxFile, 'MaxID:' + IntToStr(C.MapCount + 9) + EolW);
-    Writeln(LibxFile, '0:Campaign title');
+    Writeln(LibxFile, '0:' + edtName.Text);
     Writeln(LibxFile, '1:Mission %d');
     Writeln(LibxFile, '2:Campaign description');
     for I := 0 to C.MapCount-1 do
@@ -413,6 +490,7 @@ begin
   imgNodes[aIndexNode].Canvas.TextOut(txtLeft, txtTop, IntToStr(aIndexNode +1));
 end;
 
+
 procedure TForm1.DrawFlagNumber(aIndexMap: Integer);
 const
   OFF: array [Boolean] of TPoint = ((X:1; Y:3), (X:-1; Y:-2));
@@ -432,6 +510,7 @@ begin
   SetBkMode(imgFlags[aIndexMap].Canvas.Handle, TRANSPARENT);
   imgFlags[aIndexMap].Canvas.TextOut(txtLeft, txtTop, IntToStr(aIndexMap + 1));
 end;
+
 
 procedure TForm1.btnSaveCMPClick(Sender: TObject);
 begin
@@ -455,7 +534,20 @@ begin
 
   C.SaveToFile(dlgSaveCampaign.FileName);
   fSprites.SaveToRXXFile(ExtractFilePath(dlgSaveCampaign.FileName) + 'images.rxx');
-  CreateDefaultLocaleLibxTemplate(ExtractFilePath(dlgSaveCampaign.FileName) + 'text.eng.libx');
+
+  if FileExists(ExtractFilePath(dlgSaveCampaign.FileName) +
+  Format(TEMPLATE_LIBX_FILE_TEXT, [Locale])) then
+    SaveCampaignName(ExtractFilePath(dlgSaveCampaign.FileName) +
+      Format(TEMPLATE_LIBX_FILE_TEXT, [Locale]))
+  else
+    CreateDefaultLocaleLibxTemplate(ExtractFilePath(dlgSaveCampaign.FileName) +
+      Format(TEMPLATE_LIBX_FILE_TEXT, [Locale]));
+end;
+
+
+procedure TForm1.cbShowBriefingPositionClick(Sender: TObject);
+begin
+  shpBriefing.Visible := cbShowBriefingPosition.Checked;
 end;
 
 
@@ -465,8 +557,39 @@ begin
 end;
 
 
-procedure TForm1.btnLoadCMPClick(Sender: TObject);
+procedure TForm1.btnUnloadCMPClick(Sender: TObject);
+var I: Integer;
 begin
+  C.Free;
+  fSprites.Free;
+  Image1.Picture := nil;
+
+  C := TKMCampaign.Create;
+  fSprites := TKMSpritePackEdit.Create(rxCustom, nil);
+
+  fSelectedMap := -1;
+
+  edtName.Clear;
+  edtShortName.Clear;
+
+  seMapCount.Value := 1;
+  seNodeCount.Value := 0;
+
+  edtShortNameChange(nil);
+  seMapCountChange(nil);
+
+  for I := 0 to Length(imgNodes) - 1 do
+    imgNodes[I].Visible := False;
+end;
+
+
+procedure TForm1.btnLoadCMPClick(Sender: TObject);
+var Ini: TMemIniFile;
+begin
+  Ini := TMemIniFile.Create(fExePath + '..\..\KaM_Remake_Settings.ini');
+  Locale := Ini.ReadString('Game', 'Locale', 'eng');
+  Ini.Free;
+
   if DirectoryExists(fCampaignsPath) then
     dlgOpenCampaign.InitialDir := fCampaignsPath
   else
@@ -475,6 +598,10 @@ begin
   if not dlgOpenCampaign.Execute then Exit;
   
   LoadCmp(dlgOpenCampaign.FileName);
+
+  LoadCampaignName(ExtractFilePath(dlgOpenCampaign.FileName) + TEMPLATE_LIBX_FILE_TEXT, Locale);
+  if Length(edtName.Text) = 0 then
+    LoadCampaignName(ExtractFilePath(dlgOpenCampaign.FileName) + TEMPLATE_LIBX_FILE_TEXT , 'eng');
 end;
 
 
@@ -514,6 +641,7 @@ begin
   end;
 end;
 
+
 // Allow only Eng characters
 procedure TForm1.edtShortNameKeyPress(Sender: TObject; var Key: Char);
 begin
@@ -523,6 +651,7 @@ begin
     Key := #0;
   end;
 end;
+
 
 procedure TForm1.seMapCountChange(Sender: TObject);
 begin
