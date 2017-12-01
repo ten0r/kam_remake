@@ -1,5 +1,6 @@
 program RXXPacker;
 {$I ..\..\KaM_Remake.inc}
+{$APPTYPE CONSOLE}
 uses
   Forms, SysUtils,
   {$IFDEF FPC}Interfaces,{$ENDIF}
@@ -13,9 +14,40 @@ uses
   KM_ResSpritesEdit in '..\..\src\res\KM_ResSpritesEdit.pas',
   KM_ResPalettes in '..\..\src\res\KM_ResPalettes.pas',
   KM_SoftShadows in '..\..\src\KM_SoftShadows.pas',
-  KM_Defaults in '..\..\src\common\KM_Defaults.pas';
+  KM_Defaults in '..\..\src\common\KM_Defaults.pas',
+  KM_CommonTypes in '..\..\src\common\KM_CommonTypes.pas',
+  KM_CommonClasses in '..\..\src\common\KM_CommonClasses.pas',
+  KM_Points in '..\..\src\common\KM_Points.pas',
+  KM_CommonUtils in '..\..\src\utils\KM_CommonUtils.pas',
+  KromUtils in '..\..\src\ext\KromUtils.pas',
+  KM_FileIO in '..\..\src\utils\KM_FileIO.pas',
+  KM_Outline in '..\..\src\navmesh\KM_Outline.pas',
+  KM_PolySimplify in '..\..\src\navmesh\KM_PolySimplify.pas',
+  KM_Render in '..\..\src\render\KM_Render.pas',
+  KM_RenderControl in '..\..\src\render\KM_RenderControl.pas',
+  KM_BinPacking in '..\..\src\utils\KM_BinPacking.pas',
+  PolyTriangulate in '..\..\src\ext\PolyTriangulate.pas',
+  {$IFDEF FPC}
+  BGRABitmap in '..\..\src\ext\BGRABitmap\BGRABitmap.pas',
+  BGRAWinBitmap in '..\..\src\ext\BGRABitmap\BGRAWinBitmap.pas',
+  BGRADefaultBitmap in '..\..\src\ext\BGRABitmap\BGRADefaultBitmap.pas',
+  BGRABitmapTypes in '..\..\src\ext\BGRABitmap\BGRABitmapTypes.pas',
+  BGRACanvas in '..\..\src\ext\BGRABitmap\BGRACanvas.pas',
+  BGRAPen in '..\..\src\ext\BGRABitmap\BGRAPen.pas',
+  BGRAPolygon in '..\..\src\ext\BGRABitmap\BGRAPolygon.pas',
+  BGRAPolygonAliased in '..\..\src\ext\BGRABitmap\BGRAPolygonAliased.pas',
+  BGRAFillInfo in '..\..\src\ext\BGRABitmap\BGRAFillInfo.pas',
+  BGRABlend in '..\..\src\ext\BGRABitmap\BGRABlend.pas',
+  BGRAGradientScanner in '..\..\src\ext\BGRABitmap\BGRAGradientScanner.pas',
+  BGRATransform in '..\..\src\ext\BGRABitmap\BGRATransform.pas',
+  BGRAResample in '..\..\src\ext\BGRABitmap\BGRAResample.pas',
+  BGRAFilters in '..\..\src\ext\BGRABitmap\BGRAFilters.pas',
+  BGRAText in '..\..\src\ext\BGRABitmap\BGRAText.pas',
+  {$ENDIF}
+  dglOpenGL in '..\..\src\ext\dglOpenGL.pas',
+  KromOGLUtils in '..\..\src\ext\KromOGLUtils.pas';
 
-	{$APPTYPE CONSOLE}
+
 {$IFDEF WDC}
 {$R *.res}
 {$ENDIF}
@@ -28,13 +60,13 @@ var
   Tick: Cardinal;
 
 const
-  RXToPack: array of TRXType = [
+  RXToPack: array[0..5] of TRXType = (
     rxTrees,
     rxHouses,
     rxUnits,
     rxGui,
     rxGuiMain,
-    rxTiles];
+    rxTiles);
 
 
 function IsConsoleMode: Boolean;
