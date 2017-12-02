@@ -2,9 +2,6 @@ language: generic
 sudo: required
 dist: trusty
 
-os:
-  - linux
-
 env:
   global:
     - WINEPREFIX=~/.winelaz
