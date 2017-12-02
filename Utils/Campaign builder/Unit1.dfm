@@ -570,6 +570,7 @@ object Form1: TForm1
     Top = 72
     Width = 200
     Height = 24
+    Hint = 'Clear campaign data'
     Caption = 'Unload CMP'
     TabOrder = 14
     OnClick = btnUnloadCMPClick
