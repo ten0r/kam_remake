@@ -4,16 +4,37 @@ dist: trusty
 
 os:
   - linux
+  - osx
+
+env:
+  global:
+    - WINEPREFIX=~/.winelaz
+    - DISPLAY=:99.0
+  matrix:
+    - LAZ_VER=1.6.2
+
+matrix:
+  include:
+    - os: linux
+      env: LAZ_VER=1.6.2 LAZ_OPT="--os=linux --cpu=i386"
+    - os: linux
+      env: LAZ_VER=1.6.2 LAZ_OPT="--os=linux --cpu=x86_64"
+    - os: linux
+      env: LAZ_VER=1.6.2  LAZ_ENV=wine WINEARCH=win32 LAZ_OPT="--os=win32 --cpu=i386"
+    - os: linux
+      env: LAZ_VER=1.6.2  LAZ_ENV=wine WINEARCH=win64 LAZ_OPT="--os=win64 --cpu=x86_64"
+
+before_install:
+  # Start virtual display server
+  - wget https://raw.githubusercontent.com/nielsAD/travis-lazarus/master/.travis.install.py
+  - Xvfb $DISPLAY &
 
 install:
-  - sudo add-apt-repository ppa:jonathonf/lazarus -y
-  - sudo apt-get update
-  - sudo apt-get install lazarus fpc lcl-nogui
+  # Install prerequisites (fpc/lazarus/wine/qemu)
+  - ./.travis.install.py
 
 script:
-  - cp environmentoptions.xml Utils/RXXPacker/
-  - cd Utils/RXXPacker/
-  - sudo lazbuild -r --ws=gtk2 --pcp=./ RXXPacker.lpi --verbose
+  - lazbuild -r RXXPacker.lpi
 
 notifications:
   email:
