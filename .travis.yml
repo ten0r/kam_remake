@@ -6,10 +6,7 @@ os:
   - linux
 
 install:
-  - gpg --keyserver hkp://pgp.mit.edu:11371 --recv-keys 3A5B1204
-  - gpg --export 3A5B1204 | sudo apt-key add -
-  - echo "deb http://progprak.scale.uni-koeln.de/lazarus/ lazarus-stable universe" > lazarus.list
-  - sudo mv -v lazarus.list  /etc/apt/sources.list.d/lazarus.list
+  - sudo add-apt-repository ppa:jonathonf/lazarus
   - sudo apt-get update
   - sudo apt-get install lazarus fpc
 
