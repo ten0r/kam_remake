@@ -21,10 +21,11 @@ matrix:
 before_install:
   # Start virtual display server
   - wget https://raw.githubusercontent.com/nielsAD/travis-lazarus/master/.travis.install.py
+  - chmod +x .travis.install.py
   - Xvfb $DISPLAY &
 
 install:
-  - sudo ./.travis.install.py
+  - ./.travis.install.py
 
 script:
   - lazbuild -r RXXPacker.lpi
