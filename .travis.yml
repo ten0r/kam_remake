@@ -11,10 +11,9 @@ install:
   - sudo apt-get install lazarus fpc
 
 script:
-  - find / -name lazarus
   - cp environmentoptions.xml Utils/RXXPacker/
   - cd Utils/RXXPacker/
-  - lazbuild -r --ws=gtk2 --pcp=./ RXXPacker.lpi --verbose
+  - sudo lazbuild -r --ws=gtk2 --pcp=./ RXXPacker.lpi --verbose
 
 notifications:
   email:
