@@ -6,7 +6,7 @@ os:
   - linux
 
 install:
-  - sudo add-apt-repository ppa:jonathonf/lazarus
+  - sudo DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:jonathonf/lazarus
   - sudo apt-get update
   - sudo apt-get install lazarus fpc
 
