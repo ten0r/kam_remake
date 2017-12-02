@@ -6,7 +6,7 @@ os:
   - linux
 
 install:
-  - apt-get install lazarus fpc
+  - sudo apt-get install lazarus fpc
 
 script:
   - cp environmentoptions.xml Utils/RXXPacker/
