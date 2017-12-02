@@ -8,7 +8,7 @@ os:
 install:
   - sudo add-apt-repository ppa:jonathonf/lazarus -y
   - sudo apt-get update
-  - sudo apt-get install lazarus fpc
+  - sudo apt-get install lazarus fpc lcl-nogui
 
 script:
   - cp environmentoptions.xml Utils/RXXPacker/
