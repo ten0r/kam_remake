@@ -1,0 +1,19 @@
+language: generic
+sudo: false
+dist: trusty
+
+os:
+  - linux
+
+install:
+  - apt-get install lazarus fpc
+
+script:
+  - cp environmentoptions.xml Utils/RXXPacker/
+  - cd Utils/RXXPacker/
+  - lazbuild -r --ws=gtk2 --pcp=./ RXXPacker.lpi --verbose
+
+notifications:
+  email:
+    on_success: false
+    on_failure: false
