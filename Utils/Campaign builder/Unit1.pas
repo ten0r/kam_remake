@@ -494,7 +494,7 @@ end;
 
 procedure TForm1.DrawFlagNumber(aIndexMap: Integer);
 const
-  OFF: array [Boolean] of TPoint = ((X:-2; Y:0), (X:-1; Y:-2));
+  OFF: array [Boolean] of TPoint = ((X:-3; Y:-2), (X:-1; Y:-2));
 var
   txtWidth, txtHeight, txtLeft, txtTop: Integer;
   isRedFlag: Boolean;
@@ -582,7 +582,7 @@ end;
 procedure TForm1.btnUnloadCMPClick(Sender: TObject);
 var I: Integer;
 begin
-  if DlgQuestionShow('Не сохраненные данные будут потеряны. Вы уверены?', Self.Caption) then
+  if DlgQuestionShow('Unsaved data will be lost. Are you sure?', Self.Caption) then
   begin
     C.Free;
     fSprites.Free;
