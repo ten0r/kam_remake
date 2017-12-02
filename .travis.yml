@@ -6,6 +6,11 @@ os:
   - linux
 
 install:
+  - gpg --keyserver hkp://pgp.mit.edu:11371 --recv-keys 6A11800F
+  - gpg --export 6A11800F | sudo apt-key add -
+  - echo "deb http://www.hu.freepascal.org/lazarus/ lazarus-stable universe" > lazarus.list
+  - sudo mv -v lazarus.list  /etc/apt/sources.list.d/lazarus.list
+  - sudo apt-get update
   - sudo apt-get install lazarus fpc
 
 script:
