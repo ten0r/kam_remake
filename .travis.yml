@@ -10,8 +10,6 @@ env:
   global:
     - WINEPREFIX=~/.winelaz
     - DISPLAY=:99.0
-  matrix:
-    - LAZ_VER=1.6.2
 
 matrix:
   include:
@@ -30,8 +28,7 @@ before_install:
   - Xvfb $DISPLAY &
 
 install:
-  # Install prerequisites (fpc/lazarus/wine/qemu)
-  - ./.travis.install.py
+  - sudo ./.travis.install.py
 
 script:
   - lazbuild -r RXXPacker.lpi
