@@ -275,7 +275,7 @@ type
     procedure CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aItem, aAmountChange: Integer); overload;
     procedure CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aWareType: TWareType); overload;
     procedure CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aWoodcutterMode: TWoodcutterMode); overload;
-    procedure CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aUnitType: TUnitType; aCount:byte); overload;
+    procedure CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aUnitType: TUnitType; aCount: Integer); overload;
     procedure CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aItem: Integer); overload;
     procedure CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aLoc: TKMPoint); overload;
     procedure CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aDeliveryMode: TDeliveryMode); overload;
@@ -312,7 +312,7 @@ implementation
 uses
   SysUtils, TypInfo,
   KM_GameApp, KM_Game, KM_Hand, KM_HandsCollection,
-  KM_HouseMarket, KM_HouseBarracks, KM_HouseSchool,
+  KM_HouseMarket, KM_HouseBarracks, KM_HouseSchool, KM_HouseTownHall,
   KM_ScriptingEvents, KM_Alerts, KM_CommonUtils;
 
 
@@ -597,14 +597,14 @@ begin
       gic_HouseBarracksAcceptRecruitsToggle:
                                   TKMHouseBarracks(SrcHouse).ToggleAcceptRecruits;
       gic_HouseBarracksEquip:     TKMHouseBarracks(SrcHouse).Equip(TUnitType(Params[2]), Params[3]);
-      gic_HouseBarracksRally:     TKMHouseBarracks(SrcHouse).RallyPoint := KMPoint(Params[2], Params[3]);
+      gic_HouseBarracksRally:     TKMHouseBarracks(SrcHouse).FlagPoint := KMPoint(Params[2], Params[3]);
       gic_HouseTownHallEquip:     TKMHouseTownHall(SrcHouse).Equip(TUnitType(Params[2]), Params[3]);
-      gic_HouseTownHallRally:     TKMHouseTownHall(SrcHouse).RallyPoint := KMPoint(Params[2], Params[3]);
+      gic_HouseTownHallRally:     TKMHouseTownHall(SrcHouse).FlagPoint := KMPoint(Params[2], Params[3]);
       gic_HouseSchoolTrain:       TKMHouseSchool(SrcHouse).AddUnitToQueue(TUnitType(Params[2]), Params[3]);
       gic_HouseSchoolTrainChOrder:TKMHouseSchool(SrcHouse).ChangeUnitTrainOrder(Params[2], Params[3]);
       gic_HouseSchoolTrainChLastUOrder: TKMHouseSchool(SrcHouse).ChangeUnitTrainOrder(Params[2]);
       gic_HouseRemoveTrain:       TKMHouseSchool(SrcHouse).RemUnitFromQueue(Params[2]);
-      gic_HouseWoodcuttersCutting: TKMHouseWoodcutters(SrcHouse).CuttingPoint := KMPoint(Params[2], Params[3]);
+      gic_HouseWoodcuttersCutting: TKMHouseWoodcutters(SrcHouse).FlagPoint := KMPoint(Params[2], Params[3]);
       gic_HouseArmorWSDeliveryToggle:   TKMHouseArmorWorkshop(SrcHouse).ToggleResDelivery(TWareType(Params[2]));
 
       gic_WareDistributionChange: begin
@@ -807,10 +807,10 @@ begin
 end;
 
 
-procedure TGameInputProcess.CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aUnitType: TUnitType; aCount: Byte);
+procedure TGameInputProcess.CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aUnitType: TUnitType; aCount: Integer);
 begin
   Assert(aCommandType in [gic_HouseSchoolTrain, gic_HouseBarracksEquip, gic_HouseTownHallEquip]);
-  TakeCommand(MakeCommand(aCommandType, aHouse.UID, byte(aUnitType), aCount));
+  TakeCommand(MakeCommand(aCommandType, aHouse.UID, Byte(aUnitType), aCount));
 end;
 
 

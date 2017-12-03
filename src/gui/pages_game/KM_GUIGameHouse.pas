@@ -26,9 +26,7 @@ type
 
     procedure House_Demolish(Sender: TObject);
     procedure House_RepairToggle(Sender: TObject);
-    procedure House_OrderClick(Sender: TObject; Shift: TShiftState);
-    procedure House_OrderClickHold(Sender: TObject; aButton: TMouseButton; var aHandled: Boolean);
-    procedure House_OrderWheel(Sender: TObject; WheelDelta: Integer);
+    procedure House_OrderChange(Sender: TObject; aValue: Integer);
     procedure House_DeliveryModeToggle(Sender: TObject; Shift: TShiftState);
 
     procedure House_ClosedForWorkerToggle(Sender: TObject);
@@ -36,6 +34,7 @@ type
     procedure House_BarracksAcceptFlag(Sender: TObject);
     procedure House_BarracksUnitChange(Sender: TObject; Shift: TShiftState);
 
+    procedure House_TownHall_Change(Sender: TObject; aChangeValue: Integer);
     procedure House_TH_UnitChange(Sender: TObject; Shift: TShiftState);
 
     procedure House_MarketFill(aMarket: TKMHouseMarket);
@@ -95,7 +94,8 @@ type
       Button_School_Right,Button_School_Train,Button_School_Left: TKMButton;
     Panel_HouseTownHall: TKMPanel;
       Label_TH_Demand,Label_TH_Costs: TKMLabel;
-      ResRow_TH_Resource: TKMWaresRow;
+      ResRow_TH_Gold: TKMWaresRow;
+      ResRow_TH_MaxGold: TKMWareOrderRow;
       Label_TH_Unit: TKMLabel;
       Image_TH_Right,Image_TH_Train,Image_TH_Left: TKMImage;
       Button_TH_Right,Button_TH_Train,Button_TH_Left: TKMButton;
@@ -134,7 +134,8 @@ type
 implementation
 uses
   KM_Game, KM_GameInputProcess, KM_Hand,
-  KM_HouseBarracks, KM_HouseSchool, KM_HandsCollection, KM_RenderUI, KM_CommonUtils,
+  KM_HouseBarracks, KM_HouseSchool, KM_HouseTownHall,
+  KM_HandsCollection, KM_RenderUI, KM_CommonUtils,
   KM_Resource, KM_ResFonts, KM_ResHouses, KM_ResTexts, KM_ResUnits, KM_Utils;
 
 
@@ -147,8 +148,8 @@ begin
   Panel_House := TKMPanel.Create(aParent, TB_PAD, 44, TB_WIDTH, 332);
     //Thats common things
     //Custom things come in fixed size blocks (more smaller Panels?), and to be shown upon need
+    Image_PlayerFlag := TKMImage.Create(Panel_House, 0, 17, 20, 13, 1159, rxHouses); // before house name label
     Label_House := TKMLabel.Create(Panel_House, 0, 14, TB_WIDTH, 0, '', fnt_Outline, taCenter);
-    Image_PlayerFlag := TKMImage.Create(Panel_House, 5, 17, 20, 13, 1159, rxHouses);
     Button_HouseDeliveryMode := TKMButton.Create(Panel_House,0,42,30,30,37, rxGui, bsGame);
     Button_HouseDeliveryMode.Hint := gResTexts[TX_HOUSE_TOGGLE_DELIVERS_HINT];
     Button_HouseDeliveryMode.OnClickShift := House_DeliveryModeToggle;
@@ -198,17 +199,11 @@ begin
         ResRow_Common_Resource[I] := TKMWaresRow.Create(Panel_House_Common, 0, 0, TB_WIDTH);
         ResRow_Common_Resource[I].RX := rxGui;
 
-        ResRow_Order[I] := TKMWareOrderRow.Create(Panel_House_Common, 0, 0, TB_WIDTH);
-        ResRow_Order[I].RX := rxGui;
-        ResRow_Order[I].OrderRem.OnClickShift := House_OrderClick;
-        ResRow_Order[I].OrderAdd.OnClickShift := House_OrderClick;
-        ResRow_Order[I].OrderRem.OnClickHold  := House_OrderClickHold;
-        ResRow_Order[I].OrderAdd.OnClickHold  := House_OrderClickHold;
-        ResRow_Order[I].OrderRem.Hint         := gResTexts[TX_HOUSE_ORDER_DEC_HINT];
-        ResRow_Order[I].OrderAdd.Hint         := gResTexts[TX_HOUSE_ORDER_INC_HINT];
-        ResRow_Order[I].OrderRem.OnMouseWheel := House_OrderWheel;
-        ResRow_Order[I].OrderAdd.OnMouseWheel := House_OrderWheel;
-        ResRow_Order[I].OnMouseWheel          := House_OrderWheel;
+        ResRow_Order[I] := TKMWareOrderRow.Create(Panel_House_Common, 0, 0, TB_WIDTH, 999);
+        ResRow_Order[I].WareRow.RX := rxGui;
+        ResRow_Order[I].OnChange := House_OrderChange;
+        ResRow_Order[I].OrderRemHint := gResTexts[TX_HOUSE_ORDER_DEC_HINT];
+        ResRow_Order[I].OrderAddHint := gResTexts[TX_HOUSE_ORDER_INC_HINT];
 
         ResRow_Costs[I] := TKMCostsRow.Create(Panel_House_Common, 0, 0, TB_WIDTH, 21);
         ResRow_Costs[I].RX := rxGui;
@@ -364,27 +359,45 @@ end;
 
 {Barracks page}
 procedure TKMGUIGameHouse.Create_HouseTownhall;
+var
+  dy: Integer;
 begin
   Panel_HouseTownhall := TKMPanel.Create(Panel_House, 0, 76, TB_WIDTH, 266);
 
-    Label_TH_Demand := TKMLabel.Create(Panel_HouseTownhall,0,2,TB_WIDTH,0,gResTexts[TX_HOUSE_NEEDS],fnt_Grey,taCenter);
-    ResRow_TH_Resource := TKMWaresRow.Create(Panel_HouseTownhall, 0, 21, TB_WIDTH);
-    ResRow_TH_Resource.RX := rxGui;
-    ResRow_TH_Resource.TexID := gRes.Wares[wt_Gold].GUIIcon;
-    ResRow_TH_Resource.Caption := gRes.Wares[wt_Gold].Title;
-    ResRow_TH_Resource.Hint := gRes.Wares[wt_Gold].Title;
+    dy := 8;
+//    Label_TH_Demand := TKMLabel.Create(Panel_HouseTownhall,0,dy,TB_WIDTH,0,gResTexts[TX_HOUSE_NEEDS],fnt_Grey,taCenter);
+//    Inc(dy, 19);
+    ResRow_TH_Gold := TKMWaresRow.Create(Panel_HouseTownhall, 0, dy, TB_WIDTH);
+    ResRow_TH_Gold.RX := rxGui;
+    ResRow_TH_Gold.TexID := gRes.Wares[wt_Gold].GUIIcon;
+    ResRow_TH_Gold.Caption := gRes.Wares[wt_Gold].Title;
+    ResRow_TH_Gold.Hint := gRes.Wares[wt_Gold].Title;
+    ResRow_TH_Gold.WareCntAsNumber := True;
 
-    Label_TH_Unit := TKMLabel.Create(Panel_HouseTownhall, 0, 50, TB_WIDTH, 0, '', fnt_Outline, taCenter);
+    Inc(dy, 25);
 
-    Image_TH_Left  := TKMImage.Create(Panel_HouseTownhall,  0,70,54,80,535);
+    ResRow_TH_MaxGold := TKMWareOrderRow.Create(Panel_HouseTownhall, 0, dy, TB_WIDTH, TH_MAX_GOLDMAX_VALUE);
+    ResRow_TH_MaxGold.WareRow.RX := rxGui;
+    ResRow_TH_MaxGold.WareRow.TexID := gRes.Wares[wt_Gold].GUIIcon;
+    ResRow_TH_MaxGold.WareRow.Caption := 'Max Gold'; //Todo translate
+    ResRow_TH_MaxGold.WareRow.WareCount := 1;
+    ResRow_TH_MaxGold.Hint := 'Maximum amount of gold to deliver into townhall'; //Todo translate
+    ResRow_TH_MaxGold.OnChange := House_TownHall_Change;
+    Inc(dy, 29);
+
+    Label_TH_Unit := TKMLabel.Create(Panel_HouseTownhall, 0, dy, TB_WIDTH, 0, '', fnt_Outline, taCenter);
+    Inc(dy, 20);
+
+    Image_TH_Left  := TKMImage.Create(Panel_HouseTownhall,  0,dy,54,80,535);
     Image_TH_Left.Disable;
-    Image_TH_Train := TKMImage.Create(Panel_HouseTownhall, 62,70,54,80,536);
-    Image_TH_Right := TKMImage.Create(Panel_HouseTownhall,124,70,54,80,537);
+    Image_TH_Train := TKMImage.Create(Panel_HouseTownhall, 62,dy,54,80,536);
+    Image_TH_Right := TKMImage.Create(Panel_HouseTownhall,124,dy,54,80,537);
     Image_TH_Right.Disable;
+    Inc(dy, 106);
 
-    Button_TH_Left  := TKMButton.Create(Panel_HouseTownhall,  0,176,54,40,35, rxGui, bsGame);
-    Button_TH_Train := TKMButton.Create(Panel_HouseTownhall, 62,176,54,40,42, rxGui, bsGame);
-    Button_TH_Right := TKMButton.Create(Panel_HouseTownhall,124,176,54,40,36, rxGui, bsGame);
+    Button_TH_Left  := TKMButton.Create(Panel_HouseTownhall,  0,dy,54,40,35, rxGui, bsGame);
+    Button_TH_Train := TKMButton.Create(Panel_HouseTownhall, 62,dy,54,40,42, rxGui, bsGame);
+    Button_TH_Right := TKMButton.Create(Panel_HouseTownhall,124,dy,54,40,36, rxGui, bsGame);
     Button_TH_Left.OnClickShift := House_TH_UnitChange;
     Button_TH_Train.OnClickShift := House_TH_UnitChange;
     Button_TH_Right.OnClickShift := House_TH_UnitChange;
@@ -393,8 +406,10 @@ begin
     Button_TH_Right.Hint := gResTexts[TX_HOUSE_BARRACKS_NEXT_HINT];
     Button_TH_Train.Disable;
 
-    Label_TH_Costs  := TKMLabel.Create(Panel_HouseTownhall,0,220,TB_WIDTH,0,gResTexts[TX_HOUSE_WARE_COSTS],fnt_Grey,taCenter);
-    ResRow_TH_Cost := TKMCostsRow.Create(Panel_HouseTownhall, 0, 240, TB_WIDTH, 21);
+    Inc(dy, 46);
+    Label_TH_Costs  := TKMLabel.Create(Panel_HouseTownhall,0,dy,TB_WIDTH,0,gResTexts[TX_HOUSE_WARE_COSTS],fnt_Grey,taCenter);
+    Inc(dy, 20);
+    ResRow_TH_Cost := TKMCostsRow.Create(Panel_HouseTownhall, 0, dy, TB_WIDTH, 21);
     ResRow_TH_Cost.RX := rxGui;
     ResRow_TH_Cost.Visible := True;
     ResRow_TH_Cost.Caption := gRes.Wares[wt_Gold].Title;
@@ -501,7 +516,8 @@ end;
 
 
 procedure TKMGUIGameHouse.Show(aHouse: TKMHouse; aAskDemolish: Boolean);
-var I, RowRes, Base, Line: Integer;
+var
+  I, RowRes, Base, Line, HLabelWidth: Integer;
 begin
   AskDemolish := aAskDemolish;
 
@@ -693,7 +709,7 @@ begin
 end;
 
 
-procedure TKMGUIGameHouse.ShowCommonDemand(aHouse: TKMHouse; Base: Integer;var Line, RowRes: Integer);
+procedure TKMGUIGameHouse.ShowCommonDemand(aHouse: TKMHouse; Base: Integer; var Line, RowRes: Integer);
 var
   I: Integer;
   HSpec: TKMHouseSpec;
@@ -770,10 +786,10 @@ begin
       Res := gRes.Houses[aHouse.HouseType].ResOutput[I];
       if gRes.Wares[Res].IsValid then
       begin
-        ResRow_Order[I].TexID := gRes.Wares[Res].GUIIcon;
-        ResRow_Order[I].Caption := gRes.Wares[Res].Title;
+        ResRow_Order[I].WareRow.TexID := gRes.Wares[Res].GUIIcon;
+        ResRow_Order[I].WareRow.Caption := gRes.Wares[Res].Title;
         ResRow_Order[I].Hint := gRes.Wares[Res].Title;
-        ResRow_Order[I].WareCount := aHouse.CheckResOut(Res);
+        ResRow_Order[I].WareRow.WareCount := aHouse.CheckResOut(Res);
         ResRow_Order[I].OrderCount := aHouse.ResOrder[I];
         ResRow_Order[I].Show;
         ResRow_Order[I].Top := Base + Line * LINE_HEIGHT;
@@ -811,9 +827,17 @@ end;
 
 
 procedure TKMGUIGameHouse.ShowTownHall(aHouse: TKMHouse);
+var
+  TH: TKMHouseTownHall;
 begin
+  Assert(aHouse is TKMHouseTownHall);
+
+  TH := TKMHouseTownHall(aHouse);
+
   House_TH_UnitChange(nil, []);
-  ResRow_TH_Resource.WareCount := aHouse.CheckResIn(wt_Gold);
+  ResRow_TH_Gold.WareCount := TH.GoldCnt;
+  ResRow_TH_MaxGold.OrderCount := TH.GoldMaxCnt;
+
   Panel_HouseTownHall.Show;
 end;
 
@@ -943,7 +967,8 @@ end;
 
 
 procedure TKMGUIGameHouse.House_ClosedForWorkerToggle(Sender: TObject);
-var House: TKMHouse;
+var
+  House: TKMHouse;
 begin
   if (gMySpectator.Selected = nil) or not (gMySpectator.Selected is TKMHouse) 
     or (gMySpectator.Selected is TKMHouseBarracks) then Exit;
@@ -962,7 +987,7 @@ begin
 end;
 
 
-procedure TKMGUIGameHouse.House_OrderClick(Sender: TObject; Shift: TShiftState);
+procedure TKMGUIGameHouse.House_OrderChange(Sender: TObject; aValue: Integer);
 var
   I: Integer;
   H: TKMHouse;
@@ -971,50 +996,9 @@ begin
 
   H := TKMHouse(gMySpectator.Selected);
 
-  for I := 1 to 4 do begin
-    if Sender = ResRow_Order[I].OrderRem then
-      gGame.GameInputProcess.CmdHouse(gic_HouseOrderProduct, H, I, -GetMultiplicator(Shift));
-    if Sender = ResRow_Order[I].OrderAdd then
-      gGame.GameInputProcess.CmdHouse(gic_HouseOrderProduct, H, I, GetMultiplicator(Shift));
-  end;
-end;
-
-
-procedure TKMGUIGameHouse.House_OrderClickHold(Sender: TObject; aButton: TMouseButton; var aHandled: Boolean);
-var
-  I: Integer;
-  H: TKMHouse;
-begin
-  aHandled := True;
-  H := TKMHouse(gMySpectator.Selected);
-
-  for I := 1 to 4 do begin
-    if Sender = ResRow_Order[I].OrderRem then
-      gGame.GameInputProcess.CmdHouse(gic_HouseOrderProduct, H, I, -GetMultiplicator(aButton));
-    if Sender = ResRow_Order[I].OrderAdd then
-      gGame.GameInputProcess.CmdHouse(gic_HouseOrderProduct, H, I, GetMultiplicator(aButton));
-  end;
-end;
-
-
-procedure TKMGUIGameHouse.House_OrderWheel(Sender: TObject; WheelDelta: Integer);
-var
-  I: Integer;
-  Amount: Integer;
-  H: TKMHouse;
-begin
-  if not (gMySpectator.Selected is TKMHouse) then Exit;
-
-  H := TKMHouse(gMySpectator.Selected);
-
-  Amount := ORDER_WHEEL_AMOUNT * Sign(WheelDelta);
-
-  for I := 1 to 4 do begin
-    if (Sender = ResRow_Order[I])
-    or (Sender = ResRow_Order[I].OrderRem)
-    or (Sender = ResRow_Order[I].OrderAdd) then
-      gGame.GameInputProcess.CmdHouse(gic_HouseOrderProduct, H, I, Amount);
-  end;
+  for I := 1 to 4 do
+    if (Sender = ResRow_Order[I]) then
+      gGame.GameInputProcess.CmdHouse(gic_HouseOrderProduct, H, I, aValue);
 end;
 
 
@@ -1119,6 +1103,15 @@ begin
 
   if fLastBarracksUnit < High(Barracks_Order) then
     Image_Barracks_Right.TexID := gRes.Units[Barracks_Order[fLastBarracksUnit+1]].GUIScroll;
+end;
+
+
+procedure TKMGUIGameHouse.House_TownHall_Change(Sender: TObject; aChangeValue: Integer);
+var
+  TH: TKMHouseTownHall;
+begin
+  TH := TKMHouseTownHall(gMySpectator.Selected);
+  TH.GoldMaxCnt := EnsureRange(TH.GoldMaxCnt + aChangeValue, 0, High(Word));
 end;
 
 

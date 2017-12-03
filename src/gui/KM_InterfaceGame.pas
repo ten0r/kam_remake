@@ -131,10 +131,6 @@ const
     71, 72, 73, 74,
     75, 76, 77, 78);
 
-
-  // Amounts for placing orders
-  ORDER_WHEEL_AMOUNT = 5;
-
   MARKET_RES_HEIGHT = 35;
 
   // Big tab buttons in MapEd

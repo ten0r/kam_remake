@@ -237,9 +237,9 @@ begin
   case aUnit.UnitType of
     ut_Woodcutter:    if aHome = ht_Woodcutters then
                       begin
-                        TKMHouseWoodcutters(aUnit.GetHome).ValidateCuttingPoint; //Validate Cutting point. It will be set to a valid one if needed.
-                        if TKMHouseWoodcutters(aUnit.GetHome).IsCuttingPointSet then
-                          aLoc := TKMHouseWoodcutters(aUnit.GetHome).CuttingPoint;
+                        TKMHouseWoodcutters(aUnit.GetHome).ValidateFlagPoint; //Validate Cutting point. It will be set to a valid one if needed.
+                        if TKMHouseWoodcutters(aUnit.GetHome).IsFlagPointSet then
+                          aLoc := TKMHouseWoodcutters(aUnit.GetHome).FlagPoint;
                         fIssued := ChooseTree(aLoc, KMPOINT_ZERO, gRes.Units[aUnit.UnitType].MiningRange, aPlantAct, aUnit, Tmp, PlantAct);
                         if fIssued then
                         begin

@@ -291,7 +291,7 @@ begin
   //Order as many as we can within our limit
   if (ResRequired > 0) and (OrdersAllowed > 0) then
   begin
-    inc(fMarketDeliveryCount[fResFrom], Min(ResRequired,OrdersAllowed));
+    Inc(fMarketDeliveryCount[fResFrom], Min(ResRequired,OrdersAllowed));
     gHands[fOwner].Deliveries.Queue.AddDemand(Self, nil, fResFrom, Min(ResRequired,OrdersAllowed), dtOnce, diNorm)
   end
   else
@@ -299,7 +299,7 @@ begin
     if (ResRequired < 0) then
     begin
       OrdersRemoved := gHands[fOwner].Deliveries.Queue.TryRemoveDemand(Self, fResFrom, -ResRequired);
-      dec(fMarketDeliveryCount[fResFrom], OrdersRemoved);
+      Dec(fMarketDeliveryCount[fResFrom], OrdersRemoved);
     end;
 end;
 

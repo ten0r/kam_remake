@@ -128,7 +128,7 @@ uses
   KM_HandsCollection, KM_ResTexts, KM_Game, KM_Main, KM_GameCursor, KM_RenderPool,
   KM_Resource, KM_TerrainDeposits, KM_ResCursors, KM_ResKeys, KM_GameApp, KM_CommonUtils,
   KM_Hand, KM_AIDefensePos, KM_RenderUI, KM_ResFonts, KM_CommonClasses, KM_Units_Warrior,
-  KM_HouseBarracks, KM_ResHouses;
+  KM_HouseBarracks, KM_HouseTownHall, KM_ResHouses;
 
 const
   GROUP_IMG: array [TGroupType] of Word = (
@@ -1124,8 +1124,7 @@ begin
                   gGameCursor.MapEdDir := (gGameCursor.MapEdDir + 1) mod 4; //Rotate tile direction
 
                 //Check if we are in rally/cutting marker mode
-                if (gGameCursor.Mode = cmMarkers)
-                  and ((gGameCursor.Tag1 = MARKER_RALLY_POINT) or (gGameCursor.Tag1 = MARKER_CUTTING_POINT)) then
+                if (gGameCursor.Mode = cmMarkers) and (gGameCursor.Tag1 = MARKER_RALLY_POINT) then
                 begin
                   gGameCursor.Mode := cmNone;
                   gGameCursor.Tag1 := 0;
@@ -1137,12 +1136,8 @@ begin
                 begin
                   if ssShift in Shift then
                   begin
-                    if gMySpectator.Selected is TKMHouseBarracks then
-                      TKMHouseBarracks(gMySpectator.Selected).RallyPoint := gGameCursor.Cell
-                    else if gMySpectator.Selected is TKMHouseTownHall then
-                      TKMHouseTownHall(gMySpectator.Selected).RallyPoint := gGameCursor.Cell
-                    else if gMySpectator.Selected is TKMHouseWoodcutters then
-                      TKMHouseWoodcutters(gMySpectator.Selected).CuttingPoint := gGameCursor.Cell;
+                    if gMySpectator.Selected is TKMHouseWFlagPoint then
+                      TKMHouseWFlagPoint(gMySpectator.Selected).FlagPoint := gGameCursor.Cell;
                   end else
                     TKMHouse(gMySpectator.Selected).SetPosition(gGameCursor.Cell); //Can place is checked in SetPosition
                   Exit;

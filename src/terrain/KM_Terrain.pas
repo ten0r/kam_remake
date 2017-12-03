@@ -2423,7 +2423,9 @@ end;
 
 //Find closest passable point to TargetPoint within line segment OriginPoint <-> TargetPoint
 //MaxDistance - maximum distance between finded point and origin point. MaxDistance = -1 means there is no distance restriction
-function TKMTerrain.GetPassablePointWithinSegment(OriginPoint, TargetPoint: TKMPoint; aPassability: TKMTerrainPassability; MaxDistance: Integer = -1): TKMPoint;
+function TKMTerrain.GetPassablePointWithinSegment(OriginPoint, TargetPoint: TKMPoint;
+                                                  aPassability: TKMTerrainPassability;
+                                                  MaxDistance: Integer = -1): TKMPoint;
   function IsDistanceBetweenPointsAllowed(OriginPoint, TargetPoint: TKMPoint): Boolean;
   begin
     Result := (MaxDistance = -1) or (KMDistanceSqr(OriginPoint, TargetPoint) <= Sqr(MaxDistance));
