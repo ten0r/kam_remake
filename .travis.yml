@@ -38,6 +38,8 @@ install:
 script:
   - cd Utils/RXXPacker
   - lazbuild -r RXXPacker.lpi
+  - cd ../..
+  - lazbuild -r KaM_Remake.lpi
 
 notifications:
   email:
