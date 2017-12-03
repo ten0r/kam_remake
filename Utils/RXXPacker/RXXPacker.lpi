@@ -108,7 +108,7 @@
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit8>
       <Unit9>
-        <Filename Value="..\..\ext\KM_PNG.pas"/>
+        <Filename Value="..\..\z\KM_PNG.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="43" Y="7"/>
         <UsageCount Value="15"/>
@@ -451,8 +451,8 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <SearchPaths>
-      <IncludeFiles Value="..\..;..\..\Common;..\..\ext\LNet;..\..\ext\pascalscript\Source;..\..\ext\BGRABitmap;..\..\src;..\..\src\gui;..\..\src\houses;..\..\src\res;..\..\src\units;..\..\ext\LazarusOpenGL;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..;..\..\Common;..\..\ext\LNet;..\..\ext\pascalscript\Source;..\..\ext\BGRABitmap;..\..\src;..\..\src\gui;..\..\src\houses;..\..\src\res;..\..\src\units;..\..\ext\LazarusOpenGL"/>
+      <IncludeFiles Value="..\..;..\..\Common;..\..\src\ext\LNet;..\..\src\ext\pascalscript\Source;..\..\src\ext\BGRABitmap;..\..\src;..\..\src\gui;..\..\src\houses;..\..\src\res;..\..\src\units;..\..\src\ext\LazarusOpenGL;$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\..;..\..\Common;..\..\src\ext\LNet;..\..\src\ext\pascalscript\Source;..\..\src\ext\BGRABitmap;..\..\src;..\..\src\gui;..\..\src\houses;..\..\src\res;..\..\src\units;..\..\src\ext\LazarusOpenGL"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
