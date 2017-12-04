@@ -6,7 +6,7 @@ uses
   KM_CommonClasses, KM_Points, KM_Defaults;
   
 type
-  TKMWoodcutterMode = (wcm_Chop, wcm_ChopAndPlant);
+  TKMWoodcutterMode = (wcm_Chop, wcm_Plant, wcm_ChopAndPlant);
   
   TKMHouseWoodcutters = class(TKMHouse)
   private
@@ -93,10 +93,14 @@ end;
 
 procedure TKMHouseWoodcutters.SetWoodcutterMode(aWoodcutterMode: TKMWoodcutterMode);
 begin
-  fWoodcutterMode := aWoodcutterMode;
-  //If we're allowed to plant again, we should reshow the depleted message if we are changed to cut and run out of trees
-  if fWoodcutterMode = wcm_ChopAndPlant then
+
+  //If we're allowed to plant only again or chop only
+  //we should reshow the depleted message if we are changed to cut and run out of trees
+  if (fWoodcutterMode <> aWoodcutterMode)
+    and (aWoodcutterMode in [wcm_Chop, wcm_Plant]) then
     ResourceDepletedMsgIssued := False;
+
+  fWoodcutterMode := aWoodcutterMode;
 end;
 
 

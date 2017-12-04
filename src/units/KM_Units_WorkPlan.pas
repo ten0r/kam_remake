@@ -43,7 +43,8 @@ type
     AfterWorkIdle: Integer;
     ResourceDepleted: Boolean;
   public
-    procedure FindPlan(aUnit: TKMUnit; aHome: THouseType; aProduct: TWareType; aLoc: TKMPoint; aPlantAct: TPlantAct);
+    procedure FindPlan(aUnit: TKMUnit; aHome: THouseType; aProduct: TWareType;
+                       aLoc: TKMPoint; aPlantAct: TPlantAct);
     function FindDifferentResource(aUnit: TKMUnit; aLoc, aAvoidLoc: TKMPoint): Boolean;
     property IsIssued: Boolean read fIssued;
     procedure Save(SaveStream: TKMemoryStream);
@@ -224,7 +225,8 @@ begin
 end;
 
 
-procedure TUnitWorkPlan.FindPlan(aUnit:TKMUnit; aHome:THouseType; aProduct:TWareType; aLoc:TKMPoint; aPlantAct: TPlantAct);
+procedure TUnitWorkPlan.FindPlan(aUnit: TKMUnit; aHome: THouseType; aProduct: TWareType;
+                                 aLoc: TKMPoint; aPlantAct: TPlantAct);
 var
   I: Integer;
   Tmp: TKMPointDir;
@@ -240,8 +242,10 @@ begin
     ut_Woodcutter:    if aHome = ht_Woodcutters then
                       begin
                         TKMHouseWoodcutters(aUnit.GetHome).ValidateCuttingPoint; //Validate Cutting point. It will be set to a valid one if needed.
+
                         if TKMHouseWoodcutters(aUnit.GetHome).IsCuttingPointSet then
                           aLoc := TKMHouseWoodcutters(aUnit.GetHome).CuttingPoint;
+
                         fIssued := ChooseTree(aLoc, KMPOINT_ZERO, gRes.Units[aUnit.UnitType].MiningRange, aPlantAct, aUnit, Tmp, PlantAct);
                         if fIssued then
                         begin
@@ -257,9 +261,11 @@ begin
                           end;
                         end
                         else
-                          if (aPlantAct = taCut)
-                          and not gTerrain.CanFindTree(aLoc, gRes.Units[aUnit.UnitType].MiningRange) then
-                            ResourceDepleted := True; //No more trees to cut
+                          case PlantAct of
+                            taCut:    if not gTerrain.CanFindTree(aLoc, gRes.Units[aUnit.UnitType].MiningRange) then
+                                        ResourceDepleted := True; //No more trees to cut
+                            taPlant:  ResourceDepleted := True;   //No place for trees to plant
+                          end;
                       end;
     ut_Miner:         if aHome = ht_CoalMine then
                       begin

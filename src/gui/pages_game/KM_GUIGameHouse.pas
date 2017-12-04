@@ -413,10 +413,11 @@ begin
     Button_Woodcutter := TKMButtonFlat.Create(Panel_HouseWoodcutter,0,64,32,32,51,rxGui);
     Button_Woodcutter.OnClick := House_WoodcutterChange; //Clicking the button cycles it
 
-    Radio_Woodcutter := TKMRadioGroup.Create(Panel_HouseWoodcutter,38,64,TB_WIDTH-38,32,fnt_Grey);
+    Radio_Woodcutter := TKMRadioGroup.Create(Panel_HouseWoodcutter,38,64,TB_WIDTH-38,48,fnt_Grey);
     Radio_Woodcutter.ItemIndex := 0;
     Radio_Woodcutter.Add(gResTexts[TX_HOUSES_WOODCUTTER_PLANT_CHOP]);
     Radio_Woodcutter.Add(gResTexts[TX_HOUSES_WOODCUTTER_CHOP_ONLY]);
+    Radio_Woodcutter.Add('Plant only'); //Todo translate
     Radio_Woodcutter.OnChange := House_WoodcutterChange;
 end;
 
@@ -947,14 +948,16 @@ var
 begin
   W := TKMHouseWoodcutters(gMySpectator.Selected);
   if Sender = Button_Woodcutter then
-    Radio_Woodcutter.ItemIndex := (Radio_Woodcutter.ItemIndex + 1) mod 2; //Cycle
+    Radio_Woodcutter.ItemIndex := (Radio_Woodcutter.ItemIndex + 1) mod 3; //Cycle
 
   if (Sender = Button_Woodcutter) or (Sender = Radio_Woodcutter) then
   begin
     if Radio_Woodcutter.ItemIndex = 0 then
       WMode := wcm_ChopAndPlant
+    else if Radio_Woodcutter.ItemIndex = 1 then
+      WMode := wcm_Chop
     else
-      WMode := wcm_Chop;
+      WMode := wcm_Plant;
     gGame.GameInputProcess.CmdHouse(gic_HouseWoodcutterMode, W, WMode);
   end;
 
@@ -968,6 +971,11 @@ begin
                         Button_Woodcutter.TexID := 51;
                         Button_Woodcutter.RX := rxGui;
                         Radio_Woodcutter.ItemIndex := 1;
+                      end;
+    wcm_Plant:        begin
+                        Button_Woodcutter.TexID := 666;
+                        Button_Woodcutter.RX := rxGui;
+                        Radio_Woodcutter.ItemIndex := 2;
                       end;
   end;
 end;
