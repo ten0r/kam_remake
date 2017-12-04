@@ -32,5 +32,6 @@
 /dcu
 /src/net/KM_NetAuthSecure.pas
 __history
+__recovery
 *.tvsconfig
 /Utils/*/*.dll
