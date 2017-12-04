@@ -797,14 +797,14 @@ end;
 procedure TGameInputProcess.CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aWoodcutterMode: TKMWoodcutterMode);
 begin
   Assert(aCommandType = gic_HouseWoodcutterMode);
-  TakeCommand(MakeCommand(aCommandType, aHouse.UID, byte(aWoodcutterMode)));
+  TakeCommand(MakeCommand(aCommandType, aHouse.UID, Byte(aWoodcutterMode)));
 end;
 
 
 procedure TGameInputProcess.CmdHouse(aCommandType: TGameInputCommandType; aHouse: TKMHouse; aUnitType: TUnitType; aCount: Byte);
 begin
   Assert(aCommandType in [gic_HouseSchoolTrain, gic_HouseBarracksEquip]);
-  TakeCommand(MakeCommand(aCommandType, aHouse.UID, byte(aUnitType), aCount));
+  TakeCommand(MakeCommand(aCommandType, aHouse.UID, Byte(aUnitType), aCount));
 end;
 
 
