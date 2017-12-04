@@ -943,7 +943,7 @@ end;
 procedure TKMGUIGameHouse.House_WoodcutterChange(Sender: TObject);
 var
   W: TKMHouseWoodcutters;
-  WMode: TWoodcutterMode;
+  WMode: TKMWoodcutterMode;
 begin
   W := TKMHouseWoodcutters(gMySpectator.Selected);
   if Sender = Button_Woodcutter then

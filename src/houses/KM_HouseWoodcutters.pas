@@ -6,17 +6,17 @@ uses
   KM_CommonClasses, KM_Points, KM_Defaults;
   
 type
-  TWoodcutterMode = (wcm_Chop, wcm_ChopAndPlant);
+  TKMWoodcutterMode = (wcm_Chop, wcm_ChopAndPlant);
   
   TKMHouseWoodcutters = class(TKMHouse)
   private
-    fWoodcutterMode: TWoodcutterMode;
+    fWoodcutterMode: TKMWoodcutterMode;
     fCuttingPoint: TKMPoint;
-    procedure SetWoodcutterMode(aWoodcutterMode: TWoodcutterMode);
+    procedure SetWoodcutterMode(aWoodcutterMode: TKMWoodcutterMode);
     procedure SetCuttingPoint(aValue: TKMPoint);
     function GetCuttingPointTexId: Word;
   public
-    property WoodcutterMode: TWoodcutterMode read fWoodcutterMode write SetWoodcutterMode;
+    property WoodcutterMode: TKMWoodcutterMode read fWoodcutterMode write SetWoodcutterMode;
     constructor Create(aUID: Integer; aHouseType: THouseType; PosX, PosY: Integer; aOwner: TKMHandIndex; aBuildState: THouseBuildState);
     constructor Load(LoadStream: TKMemoryStream); override;
     procedure Save(SaveStream: TKMemoryStream); override;
@@ -91,7 +91,7 @@ begin
 end;
 
 
-procedure TKMHouseWoodcutters.SetWoodcutterMode(aWoodcutterMode: TWoodcutterMode);
+procedure TKMHouseWoodcutters.SetWoodcutterMode(aWoodcutterMode: TKMWoodcutterMode);
 begin
   fWoodcutterMode := aWoodcutterMode;
   //If we're allowed to plant again, we should reshow the depleted message if we are changed to cut and run out of trees
