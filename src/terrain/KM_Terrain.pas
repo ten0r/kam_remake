@@ -199,8 +199,6 @@ type
     function VerticeInMapCoords(X, Y: Integer; Inset: Byte = 0): Boolean;
     function EnsureTileInMapCoords(X, Y: Integer; Inset: Byte = 0): TKMPoint;
 
-    procedure ClearTileObject(X, Y: Word);
-
     function TileGoodForIron(X, Y: Word): Boolean;
     function TileGoodForGoldmine(X, Y: Word): Boolean;
     function TileGoodForField(X, Y: Word): Boolean;
@@ -226,6 +224,7 @@ type
 
     function ObjectIsChopableTree(X,Y: Word): Boolean; overload;
     function ObjectIsChopableTree(Loc: TKMPoint; aStage: TKMChopableAge): Boolean; overload;
+    function ObjectIsChopableTree(Loc: TKMPoint; aStages: TKMChopableAgeSet): Boolean; overload;
     function CanWalkDiagonaly(const aFrom: TKMPoint; bX, bY: SmallInt): Boolean;
 
     function GetCornStage(Loc: TKMPoint): Byte; overload;
@@ -267,7 +266,7 @@ var
 implementation
 uses
   KM_CommonTypes, KM_Log, KM_HandsCollection, KM_TerrainWalkConnect, KM_Resource, KM_Units,
-  KM_ResSound, KM_Sound, KM_UnitActionStay, KM_Units_Warrior, KM_TerrainPainter,
+  KM_ResSound, KM_Sound, KM_UnitActionStay, KM_Units_Warrior, KM_TerrainPainter, KM_Houses,
   KM_ResUnits, KM_Hand, KM_Game;
 
 
@@ -918,16 +917,6 @@ begin
 end;
 
 
-//Clear tile object (set to OBJ_NONE = 255)
-procedure TKMTerrain.ClearTileObject(X, Y: Word);
-begin
-  if not TileInMapCoords(X,Y) then
-    Exit;
-
-  Land[Y,X].Obj := OBJ_NONE;
-end;
-
-
 function TKMTerrain.TileGoodForIron(X,Y: Word): Boolean;
   function HousesNearTile: Boolean;
   var I,K: Integer;
@@ -1356,6 +1345,21 @@ begin
 end;
 
 
+function TKMTerrain.ObjectIsChopableTree(Loc: TKMPoint; aStages: TKMChopableAgeSet): Boolean;
+var
+  I: Integer;
+  Stage: TKMChopableAge;
+begin
+  Result := True;
+
+  for I := 1 to Length(ChopableTrees) do
+    for Stage in aStages do
+      if (Land[Loc.Y,Loc.X].Obj = ChopableTrees[I, Stage]) then Exit;
+
+  Result := False;
+end;
+
+
 function TKMTerrain.ObjectIsChopableTree(Loc: TKMPoint; aStage: TKMChopableAge): Boolean;
 var
   I: Integer;
@@ -1777,7 +1781,7 @@ begin
 end;
 
 
-function TKMTerrain.CanFindTree(aLoc: TKMPoint; aRadius: Word):Boolean;
+function TKMTerrain.CanFindTree(aLoc: TKMPoint; aRadius: Word): Boolean;
 var
   ValidTiles: TKMPointList;
   I: Integer;
@@ -2066,9 +2070,38 @@ end;
 
 {Remove the tree and place stump instead}
 procedure TKMTerrain.ChopTree(Loc: TKMPoint);
+var
+  H: TKMHouse;
+  RemoveStamp: Boolean;
 begin
   Land[Loc.Y,Loc.X].TreeAge := 0;
   FallingTrees.Remove(Loc);
+
+  // Check if that tree was near house entrance (and stamp will block its entrance)
+  //  E       entrance
+  //   S      stamp
+  RemoveStamp := False;
+  H := gHands.HousesHitTest(Loc.X - 1, Loc.Y - 1);
+  if (H <> nil) 
+    and (H.Entrance.X = Loc.X - 1)
+    and (H.Entrance.Y + 1 = Loc.Y) then
+    RemoveStamp := True;
+
+  if not RemoveStamp then
+  begin
+    //  E       entrance
+    //  S       stamp
+    H := gHands.HousesHitTest(Loc.X, Loc.Y - 1);
+    if (H <> nil) 
+      and (H.Entrance.X = Loc.X)
+      and (H.Entrance.Y + 1 = Loc.Y) then
+      RemoveStamp := True;
+  end;
+
+  if RemoveStamp then
+    Land[Loc.Y,Loc.X].Obj := OBJ_NONE;
+
+  //Update passability after all object manipulations
   UpdatePassability(KMRectGrow(KMRect(Loc), 1));
 
   //WalkConnect takes diagonal passability into account

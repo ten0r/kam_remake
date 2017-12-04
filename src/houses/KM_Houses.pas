@@ -268,7 +268,7 @@ uses
   KM_Game, KM_Terrain, KM_RenderPool, KM_RenderAux, KM_Sound, KM_FogOfWar,
   KM_Hand, KM_HandsCollection, KM_HandLogistics,
   KM_Units_Warrior, KM_HouseBarracks,
-  KM_Resource, KM_ResSound, KM_ResTexts,
+  KM_Resource, KM_ResSound, KM_ResTexts, KM_ResMapElements,
   KM_Log, KM_ScriptingEvents, KM_CommonUtils;
 
 const
@@ -419,7 +419,15 @@ end;
 
 
 procedure TKMHouse.Activate(aWasBuilt: Boolean);
-var I: Integer; Res: TWareType;
+
+  function ObjectShouldBeCleared(X,Y: Integer): Boolean;
+  begin
+    Result := not gTerrain.ObjectIsChopableTree(KMPoint(X,Y), [caAge1,caAge2,caAge3,caAgeFull,caAgeFall]);
+  end;
+
+var
+  I: Integer; Res: TWareType;
+  P1, P2: TKMPoint;
 begin
   // Only activated houses count
   gHands[fOwner].Locks.HouseCreated(fHouseType);
@@ -445,6 +453,21 @@ begin
                     inc(fResourceDeliveryCount[I],GetResDistribution(I)); //Keep track of how many resources we have on order (for distribution of wares)
                   end;
     end;
+  end;
+
+  //Fix for diagonal blocking objects near house entrance
+  if aWasBuilt then
+  begin
+    P1 := KMPoint(Entrance.X - 1, Entrance.Y + 1) ; //Point to the left from PointBelowEntrance
+    P2 := KMPoint(P1.X + 2, P1.Y);        //Point to the right from PointBelowEntrance
+
+    if not gTerrain.CanWalkDiagonaly(Entrance, P1.X, P1.Y)
+      and ObjectShouldBeCleared(P1.X + 1, P1.Y) then // Do not clear choppable trees
+      gTerrain.RemoveObject(KMPoint(P1.X + 1, P1.Y)); //Clear object at PointBelowEntrance
+
+    if not gTerrain.CanWalkDiagonaly(Entrance, P2.X, P2.Y)
+      and ObjectShouldBeCleared(P2.X, P2.Y) then
+      gTerrain.RemoveObject(P2);
   end;
 end;
 
