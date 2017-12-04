@@ -20,7 +20,7 @@ type
     procedure Clear;
     procedure WalkStyle(aLoc2: TKMPointDir; aTo, aWork: TUnitActionType; aCycles, aDelay: byte; aFrom: TUnitActionType; aScript: TGatheringScript);
     procedure SubActAdd(aAct: THouseActionType; aCycles: Single);
-    procedure ResourcePlan(Res1: TWareType; Qty1: byte; Res2: TWareType; Qty2: byte; Prod1: TWareType; Prod2: TWareType = wt_None);
+    procedure ResourcePlan(Res1: TWareType; Qty1: Byte; Res2: TWareType; Qty2: Byte; Prod1: TWareType; Prod2: TWareType = wt_None);
   public
     HasToWalk: Boolean;
     Loc: TKMPoint;
@@ -116,17 +116,17 @@ begin
 end;
 
 
-procedure TUnitWorkPlan.ResourcePlan(Res1:TWareType; Qty1:byte; Res2:TWareType; Qty2:byte; Prod1:TWareType; Prod2:TWareType=wt_None);
+procedure TUnitWorkPlan.ResourcePlan(Res1: TWareType; Qty1: Byte; Res2: TWareType; Qty2: Byte; Prod1: TWareType; Prod2: TWareType = wt_None);
 begin
-  Resource1:=Res1; Count1:=Qty1;
-  Resource2:=Res2; Count2:=Qty2;
-  Product1:=Prod1; ProdCount1:=gRes.Houses[fHome].ResProductionX;
+  Resource1 := Res1; Count1 := Qty1;
+  Resource2 := Res2; Count2 := Qty2;
+  Product1 := Prod1; ProdCount1 := gRes.Houses[fHome].ResProductionX;
   if Prod2=wt_None then exit;
-  Product2:=Prod2; ProdCount2:=gRes.Houses[fHome].ResProductionX;
+  Product2 := Prod2; ProdCount2 := gRes.Houses[fHome].ResProductionX;
 end;
 
 
-function TUnitWorkPlan.FindDifferentResource(aUnit:TKMUnit; aLoc, aAvoidLoc: TKMPoint): boolean;
+function TUnitWorkPlan.FindDifferentResource(aUnit:TKMUnit; aLoc, aAvoidLoc: TKMPoint): Boolean;
 var
   NewLoc: TKMPointDir;
   PlantAct: TPlantAct;
@@ -162,14 +162,14 @@ begin
   begin
     Loc := NewLoc.Loc;
     WorkDir := NewLoc.Dir;
-    Result := true;
+    Result := True;
   end
   else
-    Result := false;
+    Result := False;
 end;
 
 
-function TUnitWorkPlan.ChooseTree(aLoc, aAvoid:TKMPoint; aRadius:Integer; aPlantAct: TPlantAct; aUnit:TKMUnit; out Tree:TKMPointDir; out PlantAct: TPlantAct):Boolean;
+function TUnitWorkPlan.ChooseTree(aLoc, aAvoid: TKMPoint; aRadius:Integer; aPlantAct: TPlantAct; aUnit:TKMUnit; out Tree:TKMPointDir; out PlantAct: TPlantAct):Boolean;
 var
   I: Integer;
   T: TKMPoint;

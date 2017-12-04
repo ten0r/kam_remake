@@ -68,7 +68,7 @@ end;
 
 
 //Note: Phase is -1 because it will have been increased at the end of last Execute
-function TTaskMining.WalkShouldAbandon:boolean;
+function TTaskMining.WalkShouldAbandon: Boolean;
 begin
   Result := false;
   Assert(fUnit is TKMUnitCitizen);
@@ -130,7 +130,7 @@ end;
 //Happens when we discover that resource is gone or is occupied by another busy unit
 //Return false if new plan could not be found
 procedure TTaskMining.FindAnotherWorkPlan;
-var OldLoc: TKMPoint; OldDir:TKMDirection;
+var OldLoc: TKMPoint; OldDir: TKMDirection;
 begin
   OldLoc := WorkPlan.Loc;
   OldDir := WorkPlan.WorkDir;
