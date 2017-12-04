@@ -53,7 +53,9 @@ type
 
 implementation
 uses
-  SysUtils, KM_Resource, KM_CommonUtils, KM_Hand, KM_ResUnits, KM_Houses;
+  SysUtils,
+  KM_Hand, KM_ResUnits, KM_Houses, KM_HouseWoodcutters,
+  KM_Resource, KM_CommonUtils;
 
 
 {Houses are only a place on map, they should not issue or perform tasks (except Training)

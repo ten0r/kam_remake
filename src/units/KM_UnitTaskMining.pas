@@ -32,7 +32,8 @@ type
 
 implementation
 uses
-  KM_Houses, KM_HandsCollection, KM_Resource, KM_ResMapElements, KM_ResTexts, KM_ResHouses,
+  KM_Houses, KM_HouseWoodcutters, KM_HandsCollection,
+  KM_Resource, KM_ResMapElements, KM_ResTexts, KM_ResHouses,
   KM_Hand, KM_ResUnits;
 
 

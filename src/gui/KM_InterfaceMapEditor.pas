@@ -128,7 +128,7 @@ uses
   KM_HandsCollection, KM_ResTexts, KM_Game, KM_Main, KM_GameCursor, KM_RenderPool,
   KM_Resource, KM_TerrainDeposits, KM_ResCursors, KM_ResKeys, KM_GameApp, KM_CommonUtils,
   KM_Hand, KM_AIDefensePos, KM_RenderUI, KM_ResFonts, KM_CommonClasses, KM_Units_Warrior,
-  KM_HouseBarracks, KM_ResHouses;
+  KM_HouseBarracks, KM_ResHouses, KM_HouseWoodcutters;
 
 const
   GROUP_IMG: array [TGroupType] of Word = (

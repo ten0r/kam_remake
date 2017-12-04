@@ -43,7 +43,7 @@ implementation
 uses
   Classes, Types, Math,
   KM_Game, KM_Terrain,
-  KM_HouseInn, KM_HouseMarket, KM_HouseBarracks, KM_HouseSchool,
+  KM_HouseInn, KM_HouseMarket, KM_HouseBarracks, KM_HouseSchool, KM_HouseWoodcutters,
   KM_Resource;
 
 

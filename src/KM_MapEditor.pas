@@ -71,7 +71,7 @@ implementation
 uses
   SysUtils, StrUtils, Math,
   KM_Terrain, KM_FileIO,
-  KM_AIDefensePos,
+  KM_AIDefensePos, KM_HouseWoodcutters,
   KM_Units, KM_UnitGroups, KM_Houses, KM_HouseBarracks,
   KM_Game, KM_GameCursor, KM_ResMapElements, KM_ResHouses,
   KM_RenderAux, KM_Hand, KM_HandsCollection, KM_InterfaceMapEditor;
