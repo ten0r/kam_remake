@@ -13,7 +13,7 @@ type
     fWoodcutterMode: TKMWoodcutterMode;
     fCuttingPoint: TKMPoint;
     procedure SetWoodcutterMode(aWoodcutterMode: TKMWoodcutterMode);
-    procedure SetCuttingPoint(aValue: TKMPoint);
+    procedure SetCuttingPoint(aValue: TKMPoint); 
     function GetCuttingPointTexId: Word;
   public
     property WoodcutterMode: TKMWoodcutterMode read fWoodcutterMode write SetWoodcutterMode;
@@ -66,7 +66,7 @@ end;
 procedure TKMHouseWoodcutters.ValidateCuttingPoint;
 begin
   //this will automatically update cutting point to valid value
-  SetCuttingPoint(fCuttingPoint);
+  fCuttingPoint := GetValidCuttingPoint(fCuttingPoint);
 end;
 
 
@@ -86,14 +86,20 @@ end;
 
 
 procedure TKMHouseWoodcutters.SetCuttingPoint(aValue: TKMPoint);
+var
+  NewCuttingPoint: TKMPoint;
 begin
-  fCuttingPoint := GetValidCuttingPoint(aValue);
+  NewCuttingPoint := GetValidCuttingPoint(aValue);
+
+  if not KMSamePoint(fCuttingPoint, NewCuttingPoint) then
+    ResourceDepletedMsgIssued := False; //Reset resource depleted msg, if player changed CuttingPoint
+  
+  fCuttingPoint := NewCuttingPoint;
 end;
 
 
 procedure TKMHouseWoodcutters.SetWoodcutterMode(aWoodcutterMode: TKMWoodcutterMode);
 begin
-
   //If we're allowed to plant only again or chop only
   //we should reshow the depleted message if we are changed to cut and run out of trees
   if (fWoodcutterMode <> aWoodcutterMode)
