@@ -84,6 +84,7 @@ type
     procedure HouseTakeWaresFrom(aHouseID: Integer; aType, aCount: Word);
     procedure HouseUnlock(aPlayer, aHouseType: Word);
     procedure HouseWoodcutterChopOnly(aHouseID: Integer; aChopOnly: Boolean);
+    procedure HouseWoodcutterMode(aHouseID: Integer; aWoodcutterMode: Byte);
     procedure HouseWareBlock(aHouseID, aWareType: Integer; aBlocked: Boolean);
     procedure HouseWeaponsOrderSet(aHouseID, aWareType, aAmount: Integer);
 
@@ -2047,6 +2048,32 @@ begin
     end
     else
       LogParamWarning('Actions.HouseWoodcutterChopOnly', [aHouseID, Byte(aChopOnly)]);
+  except
+    gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
+    raise;
+  end;
+end;
+
+
+//* Version: 7000+
+//* Sets woodcutter's hut woodcutter mode
+//* Possible values for aWoodcutterMode parameter:
+//* 0 - Chop And Plant
+//* 1 - Chop only
+//* 2 - Plant only
+procedure TKMScriptActions.HouseWoodcutterMode(aHouseID: Integer; aWoodcutterMode: Byte);
+var
+  H: TKMHouse;
+begin
+  try
+    if (aHouseID > 0) and (aWoodcutterMode <= Byte(High(TKMWoodcutterMode))) then
+    begin
+      H := fIDCache.GetHouse(aHouseID);
+      if H is TKMHouseWoodcutters then
+        TKMHouseWoodcutters(H).WoodcutterMode := TKMWoodcutterMode(aWoodcutterMode);
+    end
+    else
+      LogParamWarning('Actions.HouseWoodcutterMode', [aHouseID, Byte(aWoodcutterMode)]);
   except
     gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
     raise;
