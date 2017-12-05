@@ -43,6 +43,7 @@ type
     function HouseDeliveryMode(aHouseID: Integer): Integer;
     function HouseDestroyed(aHouseID: Integer): Boolean;
     function HouseHasOccupant(aHouseID: Integer): Boolean;
+    function HouseFlagPoint(aHouseID: Integer): TKMPoint;
     function HouseIsComplete(aHouseID: Integer): Boolean;
     function HouseTypeMaxHealth(aHouseType: Integer): Word;
     function HouseTypeToOccupantType(aHouseType: Integer): Integer;
@@ -1150,10 +1151,12 @@ begin
     begin
       H := fIDCache.GetHouse(aBarracks);
       if (H <> nil) and not H.IsDestroyed  and (H.IsComplete) then
+      begin
         if (H is TKMHouseBarracks) then
-          Result := TKMHouseBarracks(H).RallyPoint.X
+          Result := TKMHouseBarracks(H).FlagPoint.X
         else
           LogParamWarning('States.HouseBarracksRallyPointX: Specified house is not Barracks', [aBarracks]);
+      end;
     end
     else
       LogParamWarning('States.HouseBarracksRallyPointX', [aBarracks]);
@@ -1177,13 +1180,44 @@ begin
     begin
       H := fIDCache.GetHouse(aBarracks);
       if (H <> nil) and not H.IsDestroyed and (H.IsComplete) then
+      begin
         if (H is TKMHouseBarracks) then
-          Result := TKMHouseBarracks(H).RallyPoint.Y
+          Result := TKMHouseBarracks(H).FlagPoint.Y
         else
           LogParamWarning('States.HouseBarracksRallyPointY: Specified house is not Barracks', [aBarracks]);
+      end;
     end
     else
       LogParamWarning('States.HouseBarracksRallyPointY', [aBarracks]);
+  except
+    gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
+    raise;
+  end;
+end;
+
+
+//* Version: 7000+
+//* Returns House Flag Point of specified house or KMPoint(0,0) if aHouseId is invalid
+//* Result: Flag Point
+function TKMScriptStates.HouseFlagPoint(aHouseID: Integer): TKMPoint;
+var
+  H: TKMHouse;
+begin
+  try
+    Result := KMPOINT_ZERO;
+    if aHouseId > 0 then
+    begin
+      H := fIDCache.GetHouse(aHouseId);
+      if (H <> nil) and not H.IsDestroyed and (H.IsComplete) then
+      begin
+        if (H is TKMHouseWFlagPoint) then
+          Result := TKMHouseWFlagPoint(H).FlagPoint
+        else
+          LogParamWarning('States.HouseFlagPoint: Specified house does not have Flag point', [aHouseId]);
+      end;
+    end
+    else
+      LogParamWarning('States.HouseFlagPoint', [aHouseId]);
   except
     gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
     raise;

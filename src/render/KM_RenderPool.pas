@@ -139,8 +139,8 @@ var
 implementation
 uses
   KM_RenderAux, KM_HandsCollection, KM_Game, KM_Sound, KM_Resource, KM_ResUnits,
-  KM_ResMapElements, KM_AIFields, KM_TerrainPainter, KM_GameCursor, KM_HouseBarracks,
-  KM_HouseWoodcutters,
+  KM_ResMapElements, KM_AIFields, KM_TerrainPainter, KM_GameCursor,
+  KM_HouseBarracks, KM_HouseTownHall, KM_HouseWoodcutters,
   KM_FogOfWar, KM_Hand, KM_UnitGroups, KM_Units_Warrior, KM_CommonUtils;
 
 
@@ -412,24 +412,18 @@ end;
 
 procedure TRenderPool.PaintRallyPoints(aPass: Byte);
 var
-  B: TKMHouseBarracks;
-  WH: TKMHouseWoodcutters;
+  HWFP: TKMHouseWFlagPoint;
 begin
-  if not (gMySpectator.Selected is TKMHouseBarracks) and not (gMySpectator.Selected is TKMHouseWoodcutters) then
+  if not (gMySpectator.Selected is TKMHouseBarracks) and
+     not (gMySpectator.Selected is TKMHouseTownHall) and
+     not (gMySpectator.Selected is TKMHouseWoodcutters) then
     Exit;
 
-  if gMySpectator.Selected is TKMHouseBarracks then
+  if gMySpectator.Selected is TKMHouseWFlagPoint then
   begin
-    B := TKMHouseBarracks(gMySpectator.Selected);
-    if B.IsRallyPointSet then
-      PaintRallyPoint(B.Entrance, B.RallyPoint, gHands[B.Owner].FlagColor, B.RallyPointTexId, aPass);
-  end
-  else
-  if gMySpectator.Selected is TKMHouseWoodcutters then
-  begin
-    WH := TKMHouseWoodcutters(gMySpectator.Selected);
-    if WH.IsCuttingPointSet then
-      PaintRallyPoint(WH.Entrance, WH.CuttingPoint, gHands[WH.Owner].FlagColor, WH.CuttingPointTexId, aPass);
+    HWFP := TKMHouseWFlagPoint(gMySpectator.Selected);
+    if HWFP.IsFlagPointSet then
+      PaintRallyPoint(HWFP.Entrance, HWFP.FlagPoint, gHands[HWFP.Owner].FlagColor, HWFP.FlagPointTexId, aPass);
   end;
 end;
 
@@ -1378,8 +1372,7 @@ procedure TRenderPool.RenderForegroundUI;
 var
   P: TKMPoint;
   F: TKMPointF;
-  WH: TKMHouseWoodcutters;
-  B: TKMHouseBarracks;
+  HWFP: TKMHouseWFlagPoint;
   I, K: Integer;
   Tmp: Single;
   Rad, Slope: Byte;
@@ -1503,15 +1496,10 @@ begin
                     MARKER_DEFENCE:       RenderSpriteOnTile(P, 519, gMySpectator.Hand.FlagColor);
                     MARKER_CENTERSCREEN:  RenderSpriteOnTile(P, 391, gMySpectator.Hand.FlagColor);
                     MARKER_AISTART:       RenderSpriteOnTile(P, 390, gMySpectator.Hand.FlagColor);
-                    MARKER_RALLY_POINT:   if gMySpectator.Selected is TKMHouseBarracks then
+                    MARKER_RALLY_POINT:   if gMySpectator.Selected is TKMHouseWFlagPoint then
                                           begin
-                                            B := TKMHouseBarracks(gMySpectator.Selected);
-                                            PaintRallyPoint(B.Entrance, P, gMySpectator.Hand.FlagColor, B.RallyPointTexId, 0, True);
-                                          end;
-                    MARKER_CUTTING_POINT: if gMySpectator.Selected is TKMHouseWoodcutters then
-                                          begin
-                                            WH := TKMHouseWoodcutters(gMySpectator.Selected);
-                                            PaintRallyPoint(WH.Entrance, WH.GetValidCuttingPoint(P), gMySpectator.Hand.FlagColor, WH.CuttingPointTexId, 0, True);
+                                            HWFP := TKMHouseWFlagPoint(gMySpectator.Selected);
+                                            PaintRallyPoint(HWFP.Entrance, P, gMySpectator.Hand.FlagColor, HWFP.FlagPointTexId, 0, True);
                                           end;
                   end;
     cmPaintBucket:      RenderForegroundUI_PaintBucket(ssShift in gGameCursor.SState);

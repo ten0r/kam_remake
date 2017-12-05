@@ -8,24 +8,20 @@ uses
 type
   TKMWoodcutterMode = (wcm_ChopAndPlant, wcm_Chop, wcm_Plant);
   
-  TKMHouseWoodcutters = class(TKMHouse)
+  TKMHouseWoodcutters = class(TKMHouseWFlagPoint)
   private
     fWoodcutterMode: TKMWoodcutterMode;
     fCuttingPoint: TKMPoint;
     procedure SetWoodcutterMode(aWoodcutterMode: TKMWoodcutterMode);
-    procedure SetCuttingPoint(aValue: TKMPoint); 
-    function GetCuttingPointTexId: Word;
+  protected
+    procedure SetFlagPoint(aFlagPoint: TKMPoint); override;
+    function GetFlagPointTexId: Word; override;
+    function GetMaxDistanceToPoint: Integer; override;
   public
     property WoodcutterMode: TKMWoodcutterMode read fWoodcutterMode write SetWoodcutterMode;
     constructor Create(aUID: Integer; aHouseType: THouseType; PosX, PosY: Integer; aOwner: TKMHandIndex; aBuildState: THouseBuildState);
     constructor Load(LoadStream: TKMemoryStream); override;
     procedure Save(SaveStream: TKMemoryStream); override;
-
-    function IsCuttingPointSet: Boolean;
-    procedure ValidateCuttingPoint;
-    property CuttingPoint: TKMPoint read fCuttingPoint write SetCuttingPoint;
-    function GetValidCuttingPoint(aPoint: TKMPoint): TKMPoint;
-    property CuttingPointTexId: Word read GetCuttingPointTexId;
   end;
 
   
@@ -38,7 +34,6 @@ constructor TKMHouseWoodcutters.Create(aUID: Integer; aHouseType: THouseType; Po
 begin
   inherited;
   WoodcutterMode := wcm_ChopAndPlant;
-  CuttingPoint := PointBelowEntrance;
 end;
 
 
@@ -46,7 +41,6 @@ constructor TKMHouseWoodcutters.Load(LoadStream: TKMemoryStream);
 begin
   inherited;
   LoadStream.Read(fWoodcutterMode, SizeOf(fWoodcutterMode));
-  LoadStream.Read(fCuttingPoint);
 end;
 
 
@@ -57,44 +51,28 @@ begin
   SaveStream.Write(fCuttingPoint);
 end;
 
-function TKMHouseWoodcutters.IsCuttingPointSet: Boolean;
-begin
-  Result := not KMSamePoint(fCuttingPoint, PointBelowEntrance);
-end;
 
-
-procedure TKMHouseWoodcutters.ValidateCuttingPoint;
-begin
-  //this will automatically update cutting point to valid value
-  fCuttingPoint := GetValidCuttingPoint(fCuttingPoint);
-end;
-
-
-function TKMHouseWoodcutters.GetCuttingPointTexId: Word;
+function TKMHouseWoodcutters.GetFlagPointTexId: Word;
 begin
   Result := 660;
 end;
 
 
-//Check if specified point is valid
-//if it is valid - return it
-//if it is not valid - return appropriate valid point, within segment between PointBelowEntrance and specified aPoint
-function TKMHouseWoodcutters.GetValidCuttingPoint(aPoint: TKMPoint): TKMPoint;
+function TKMHouseWoodcutters.GetMaxDistanceToPoint: Integer;
 begin
-  Result := gTerrain.GetPassablePointWithinSegment(PointBelowEntrance, aPoint, tpWalk, MAX_WOODCUTTER_CUT_PNT_DISTANCE);
+  Result := MAX_WOODCUTTER_CUT_PNT_DISTANCE;
 end;
 
 
-procedure TKMHouseWoodcutters.SetCuttingPoint(aValue: TKMPoint);
+procedure TKMHouseWoodcutters.SetFlagPoint(aFlagPoint: TKMPoint);
 var
-  NewCuttingPoint: TKMPoint;
+  OldFlagPoint: TKMPoint;
 begin
-  NewCuttingPoint := GetValidCuttingPoint(aValue);
+  OldFlagPoint := FlagPoint;
+  inherited;
 
-  if not KMSamePoint(fCuttingPoint, NewCuttingPoint) then
+  if not KMSamePoint(OldFlagPoint, fCuttingPoint) then
     ResourceDepletedMsgIssued := False; //Reset resource depleted msg, if player changed CuttingPoint
-  
-  fCuttingPoint := NewCuttingPoint;
 end;
 
 

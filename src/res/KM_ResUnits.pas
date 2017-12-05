@@ -149,6 +149,10 @@ const
     (wt_MetalShield,  wt_MetalArmor,  wt_Sword, wt_Horse)  //Knight
   );
 
+  //TownHall units troops cost (number of gold chests needed)
+  TH_TroopCost: array[0..4] of Byte = (
+    2, 2, 3, 5, 4
+  );
 
   //The frame shown when a unit is standing still in ua_Walk. Same for all units!
   UnitStillFrames: array [TKMDirection] of Byte = (0,3,2,2,1,6,7,6,6);

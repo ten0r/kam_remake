@@ -41,7 +41,7 @@ uses
   Classes, SysUtils, Math, KromUtils,
   KM_Hand, KM_Game, KM_HandsCollection,
   KM_Units, KM_UnitsCollection, KM_Units_Warrior,
-  KM_HouseCollection, KM_HouseBarracks, KM_HouseWoodcutters,
+  KM_HouseCollection, KM_HouseBarracks, KM_HouseTownHall, KM_HouseWoodcutters,
   KM_AI, KM_AIDefensePos,
   KM_Resource, KM_ResHouses, KM_ResUnits, KM_ResWares,
   KM_CommonClasses, KM_Terrain;
@@ -128,6 +128,34 @@ procedure TMissionParserStandard.PostLoadMission;
 begin
   //Post-processing of ct_Attack_Position commands which must be done after mission has been loaded
   ProcessAttackPositions;
+  gHands.PostLoadMission;
+end;
+
+
+//Determine what we are attacking: House, Unit or just walking to some place
+procedure TMissionParserStandard.ProcessAttackPositions;
+var
+  I: Integer;
+  H: TKMHouse;
+  U: TKMUnit;
+begin
+  Assert((fParsingMode <> mpm_Editor) or (fAttackPositionsCount = 0), 'AttackPositions should be handled by MapEd');
+
+  for I := 0 to fAttackPositionsCount - 1 do
+    with fAttackPositions[I] do
+    begin
+      H := gHands.HousesHitTest(Target.X, Target.Y); //Attack house
+      if (H <> nil) and (not H.IsDestroyed) and (gHands.CheckAlliance(Group.Owner, H.Owner) = at_Enemy) then
+        Group.OrderAttackHouse(H, True)
+      else
+      begin
+        U := gTerrain.UnitsHitTest(Target.X, Target.Y); //Chase/attack unit
+        if (U <> nil) and (not U.IsDeadOrDying) and (gHands.CheckAlliance(Group.Owner, U.Owner) = at_Enemy) then
+          Group.OrderAttackUnit(U, True)
+        else
+          Group.OrderWalk(Target, True); //Just move to position
+      end;
+    end;
 end;
 
 
@@ -307,7 +335,7 @@ begin
     ct_AddWareToAll:    begin
                           Qty := EnsureRange(P[1], -1, High(Word)); //Sometimes user can define it to be 999999
                           if Qty = -1 then Qty := High(Word); //-1 means maximum resources
-                          for i:=0 to gHands.Count-1 do
+                          for I := 0 to gHands.Count - 1 do
                           begin
                             H := gHands[i].FindHouse(ht_Store, 1);
                             if (H <> nil) and H.ResCanAddToIn(WareIndexToType[P[0]]) then
@@ -578,11 +606,9 @@ begin
                         begin
                           if (fLastHouse <> nil) then
                           begin
-                            if not fLastHouse.IsDestroyed then //Could be destroyed already by damage
-                              if (fLastHouse is TKMHouseBarracks) then
-                                TKMHouseBarracks(fLastHouse).RallyPoint := KMPoint(P[0]+1, P[1]+1)
-                              else if (fLastHouse is TKMHouseWoodcutters) then
-                                TKMHouseWoodcutters(fLastHouse).CuttingPoint := KMPoint(P[0]+1, P[1]+1);
+                            if not fLastHouse.IsDestroyed  //Could be destroyed already by damage
+                              and (fLastHouse is TKMHouseWFlagPoint) then
+                              TKMHouseWFlagPoint(fLastHouse).FlagPoint := KMPoint(P[0]+1, P[1]+1);
                           end
                           else
                             AddError('ct_SetRallyPoint without prior declaration of House');
@@ -595,33 +621,6 @@ begin
                         end;
   end;
   Result := true; //Must have worked if we haven't exited by now
-end;
-
-
-//Determine what we are attacking: House, Unit or just walking to some place
-procedure TMissionParserStandard.ProcessAttackPositions;
-var
-  I: Integer;
-  H: TKMHouse;
-  U: TKMUnit;
-begin
-  Assert((fParsingMode <> mpm_Editor) or (fAttackPositionsCount = 0), 'AttackPositions should be handled by MapEd');
-
-  for I := 0 to fAttackPositionsCount - 1 do
-    with fAttackPositions[I] do
-    begin
-      H := gHands.HousesHitTest(Target.X, Target.Y); //Attack house
-      if (H <> nil) and (not H.IsDestroyed) and (gHands.CheckAlliance(Group.Owner, H.Owner) = at_Enemy) then
-        Group.OrderAttackHouse(H, True)
-      else
-      begin
-        U := gTerrain.UnitsHitTest(Target.X, Target.Y); //Chase/attack unit
-        if (U <> nil) and (not U.IsDeadOrDying) and (gHands.CheckAlliance(Group.Owner, U.Owner) = at_Enemy) then
-          Group.OrderAttackUnit(U, True)
-        else
-          Group.OrderWalk(Target, True); //Just move to position
-      end;
-    end;
 end;
 
 
@@ -868,15 +867,11 @@ begin
         begin
           for J := 1 to TKMHouseBarracks(H).MapEdRecruitCount do
             AddCommand(ct_UnitAddToLast, [UnitTypeToOldIndex[ut_Recruit]]);
-          if TKMHouseBarracks(H).IsRallyPointSet then
-            AddCommand(ct_SetRallyPoint, [TKMHouseBarracks(H).RallyPoint.X-1 + aLeftInset, TKMHouseBarracks(H).RallyPoint.Y-1 + aTopInset]);
         end;
 
-        if H is TKMHouseWoodcutters then
-        begin
-          if TKMHouseWoodcutters(H).IsCuttingPointSet then
-            AddCommand(ct_SetRallyPoint, [TKMHouseWoodcutters(H).CuttingPoint.X-1 + aLeftInset, TKMHouseWoodcutters(H).CuttingPoint.Y-1 + aTopInset]);
-        end;
+        if (H is TKMHouseWFlagPoint)
+          and TKMHouseWFlagPoint(H).IsFlagPointSet then
+          AddCommand(ct_SetRallyPoint, [TKMHouseWFlagPoint(H).FlagPoint.X-1 + aLeftInset, TKMHouseWFlagPoint(H).FlagPoint.Y-1 + aTopInset]);
 
         //Process any wares in this house
         //First two Stores use special KaM commands

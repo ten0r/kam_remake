@@ -71,8 +71,8 @@ implementation
 uses
   SysUtils, StrUtils, Math,
   KM_Terrain, KM_FileIO,
-  KM_AIDefensePos, KM_HouseWoodcutters,
-  KM_Units, KM_UnitGroups, KM_Houses, KM_HouseBarracks,
+  KM_AIDefensePos, 
+  KM_Units, KM_UnitGroups, KM_Houses, KM_HouseBarracks, KM_HouseTownHall, KM_HouseWoodcutters,
   KM_Game, KM_GameCursor, KM_ResMapElements, KM_ResHouses,
   KM_RenderAux, KM_Hand, KM_HandsCollection, KM_InterfaceMapEditor;
 
@@ -520,10 +520,8 @@ begin
                                                         //Updating XY display is done in InterfaceMapEd
                                                       end;
                                 MARKER_AISTART:       gMySpectator.Hand.AI.Setup.StartPosition := P;
-                                MARKER_RALLY_POINT:   if gMySpectator.Selected is TKMHouseBarracks then
-                                                        TKMHouseBarracks(gMySpectator.Selected).RallyPoint := P;
-                                MARKER_CUTTING_POINT: if gMySpectator.Selected is TKMHouseWoodcutters then
-                                                        TKMHouseWoodcutters(gMySpectator.Selected).CuttingPoint := P;
+                                MARKER_RALLY_POINT:   if gMySpectator.Selected is TKMHouseWFlagPoint then
+                                                        TKMHouseWFlagPoint(gMySpectator.Selected).FlagPoint := P;
                               end;
                 cmErase:      begin
                                 gHands.RemAnyHouse(P);
