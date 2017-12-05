@@ -15,11 +15,9 @@ type
   private
     fGoldCnt: Word;
     fGoldMaxCnt: Word;
-//    fGoldDeliveryCount: Word;
     function GetTHUnitOrderIndex(aUnitType: TUnitType): Integer;
     procedure SetGoldCnt(aValue: Word);
     procedure SetGoldMaxCnt(aValue: Word); overload;
-    procedure SetGoldMaxCnt(aValue: Word; aFromScript: Boolean); overload;
   protected
     function GetFlagPointTexId: Word; override;
     procedure AddDemandsOnActivate; override;
@@ -29,6 +27,8 @@ type
     constructor Create(aUID: Integer; aHouseType: THouseType; PosX, PosY: Integer; aOwner: TKMHandIndex; aBuildState: THouseBuildState);
     constructor Load(LoadStream: TKMemoryStream); override;
     procedure Save(SaveStream: TKMemoryStream); override;
+
+    procedure SetGoldMaxCnt(aValue: Word; aFromScript: Boolean); overload;
 
     property GoldCnt: Word read fGoldCnt write SetGoldCnt;
     property GoldMaxCnt: Word read fGoldMaxCnt write SetGoldMaxCnt;
