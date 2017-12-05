@@ -45,8 +45,6 @@ type
     function HouseHasOccupant(aHouseID: Integer): Boolean;
     function HouseFlagPoint(aHouseID: Integer): TKMPoint;
     function HouseIsComplete(aHouseID: Integer): Boolean;
-    function HouseTypeMaxHealth(aHouseType: Integer): Word;
-    function HouseTypeToOccupantType(aHouseType: Integer): Integer;
     function HouseOwner(aHouseID: Integer): Integer;
     function HousePositionX(aHouseID: Integer): Integer;
     function HousePositionY(aHouseID: Integer): Integer;
@@ -54,8 +52,11 @@ type
     function HouseResourceAmount(aHouseID, aResource: Integer): Integer;
     function HouseSchoolQueue(aHouseID, QueueIndex: Integer): Integer;
     function HouseSiteIsDigged(aHouseID: Integer): Boolean;
+    function HouseTownHallMaxGold(aHouseID: Integer): Integer;
     function HouseType(aHouseID: Integer): Integer;
+    function HouseTypeMaxHealth(aHouseType: Integer): Word;
     function HouseTypeName(aHouseType: Byte): AnsiString;
+    function HouseTypeToOccupantType(aHouseType: Integer): Integer;
     function HouseUnlocked(aPlayer, aHouseType: Word): Boolean;
     function HouseWareBlocked(aHouseID, aWareType: Integer): Boolean;
     function HouseWeaponsOrdered(aHouseID, aWareType: Integer): Integer;
@@ -141,7 +142,7 @@ uses
   KM_AI, KM_Terrain, KM_Game, KM_FogOfWar, KM_HandsCollection, KM_Units_Warrior,
   KM_HouseBarracks, KM_HouseSchool, KM_ResUnits, KM_Log, KM_CommonUtils, KM_HouseMarket,
   KM_Resource, KM_UnitTaskSelfTrain, KM_Sound, KM_Hand, KM_AIDefensePos, KM_CommonClasses,
-  KM_UnitsCollection, KM_PathFindingRoad, KM_HouseWoodcutters;
+  KM_UnitsCollection, KM_PathFindingRoad, KM_HouseWoodcutters, KM_HouseTownHall;
 
 
   //We need to check all input parameters as could be wildly off range due to
@@ -1587,6 +1588,31 @@ begin
     end
     else
       LogParamWarning('States.HouseSiteIsDigged', [aHouseID]);
+  except
+    gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
+    raise;
+  end;
+end;
+
+
+//* Version: 7000+
+//* Returns Max amount of gold which is possible to deliver into the TownHall
+//* Result: Max gold for specified TownHall
+//* or -1 if TownHall house was not found
+function TKMScriptStates.HouseTownHallMaxGold(aHouseID: Integer): Integer;
+var
+  H: TKMHouse;
+begin
+  try
+    Result := -1;
+    if aHouseID > 0 then
+    begin
+      H := fIDCache.GetHouse(aHouseID);
+      if H is TKMHouseTownHall then
+        Result := TKMHouseTownHall(H).GoldMaxCnt;
+    end
+    else
+      LogParamWarning('States.HouseTownHallMaxGold', [aHouseID]);
   except
     gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
     raise;

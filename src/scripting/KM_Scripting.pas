@@ -369,6 +369,7 @@ begin
     RegisterMethodCheck(c, 'function HouseResourceAmount(aHouseID, aResource: Integer): Integer');
     RegisterMethodCheck(c, 'function HouseSchoolQueue(aHouseID, QueueIndex: Integer): Integer');
     RegisterMethodCheck(c, 'function HouseSiteIsDigged(aHouseID: Integer): Boolean');
+    RegisterMethodCheck(c, 'function HouseTownHallMaxGold(aHouseID: Integer): Integer');
     RegisterMethodCheck(c, 'function HouseType(aHouseID: Integer): Integer');
     RegisterMethodCheck(c, 'function HouseTypeMaxHealth(aHouseType: Integer): Word');
     RegisterMethodCheck(c, 'function HouseTypeName(aHouseType: Byte): AnsiString');
@@ -855,6 +856,7 @@ begin
       RegisterMethod(@TKMScriptStates.HouseResourceAmount,                      'HouseResourceAmount');
       RegisterMethod(@TKMScriptStates.HouseSchoolQueue,                         'HouseSchoolQueue');
       RegisterMethod(@TKMScriptStates.HouseSiteIsDigged,                        'HouseSiteIsDigged');
+      RegisterMethod(@TKMScriptStates.HouseTownHallMaxGold,                     'HouseTownHallMaxGold');
       RegisterMethod(@TKMScriptStates.HouseType,                                'HouseType');
       RegisterMethod(@TKMScriptStates.HouseTypeMaxHealth,                       'HouseTypeMaxHealth');
       RegisterMethod(@TKMScriptStates.HouseTypeName,                            'HouseTypeName');
