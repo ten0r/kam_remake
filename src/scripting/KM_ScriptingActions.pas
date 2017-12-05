@@ -2057,7 +2057,7 @@ end;
 
 //* Version: 7000+
 //* Sets woodcutter's hut woodcutter mode
-//* Possible values for aWoodcutterMode parameter:
+//* Possible values for aWoodcutterMode parameter are:
 //* 0 - Chop And Plant
 //* 1 - Chop only
 //* 2 - Plant only
