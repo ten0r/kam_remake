@@ -1984,14 +1984,19 @@ end;
 
 //* Version: 7000+
 //* Sets delivery mode for the specified house
+//* Possible values for aDeliveryMode parameter:
+//* 0 - Delivery closed
+//* 1 - Delivery allowed
+//* 2 - Take resource out
 procedure TKMScriptActions.HouseDeliveryMode(aHouseID: Integer; aDeliveryMode: Byte);
 var H: TKMHouse;
 begin
   try
-    if aHouseID > 0 then
+    if (aHouseID > 0) and (aDeliveryMode <= Byte(High(TDeliveryMode))) then
     begin
       H := fIDCache.GetHouse(aHouseID);
-      if (H <> nil) and gRes.Houses[H.HouseType].AcceptsWares then
+      if (H <> nil)
+        and gRes.Houses[H.HouseType].AcceptsWares then
         H.SetDeliveryModeInstantly(TDeliveryMode(aDeliveryMode));
     end
     else
