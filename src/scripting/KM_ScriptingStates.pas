@@ -59,6 +59,7 @@ type
     function HouseWareBlocked(aHouseID, aWareType: Integer): Boolean;
     function HouseWeaponsOrdered(aHouseID, aWareType: Integer): Integer;
     function HouseWoodcutterChopOnly(aHouseID: Integer): Boolean;
+    function HouseWoodcutterMode(aHouseID: Integer): Integer;
 
     function IsFieldAt(aPlayer: ShortInt; X, Y: Word): Boolean;
     function IsWinefieldAt(aPlayer: ShortInt; X, Y: Word): Boolean;
@@ -1743,6 +1744,34 @@ begin
     end
     else
       LogParamWarning('States.HouseWoodcutterChopOnly', [aHouseID]);
+  except
+    gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
+    raise;
+  end;
+end;
+
+
+//* Version: 7000+
+//* Returns woodcutter mode value for the specified woodcutter's hut
+//* Possible values for woodcutter mode are:
+//* 0 - Chop And Plant
+//* 1 - Chop only
+//* 2 - Plant only
+//* Result: woodcutter mode as Integer value
+function TKMScriptStates.HouseWoodcutterMode(aHouseID: Integer): Integer;
+var
+  H: TKMHouse;
+begin
+  try
+    Result := Integer(wcm_ChopAndPlant);
+    if aHouseID > 0 then
+    begin
+      H := fIDCache.GetHouse(aHouseID);
+      if H is TKMHouseWoodcutters then
+        Result := Integer(TKMHouseWoodcutters(H).WoodcutterMode);
+    end
+    else
+      LogParamWarning('States.HouseWoodcutterMode', [aHouseID]);
   except
     gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
     raise;
