@@ -6,7 +6,7 @@ uses
   KM_CommonClasses, KM_Points, KM_Defaults;
   
 type
-  TKMWoodcutterMode = (wcm_Chop, wcm_Plant, wcm_ChopAndPlant);
+  TKMWoodcutterMode = (wcm_ChopAndPlant, wcm_Chop, wcm_Plant);
   
   TKMHouseWoodcutters = class(TKMHouse)
   private
