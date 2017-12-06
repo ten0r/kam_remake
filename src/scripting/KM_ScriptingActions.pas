@@ -82,8 +82,10 @@ type
     function  HouseSchoolQueueAdd(aHouseID: Integer; aUnitType: Integer; aCount: Integer): Integer;
     procedure HouseSchoolQueueRemove(aHouseID, QueueIndex: Integer);
     procedure HouseTakeWaresFrom(aHouseID: Integer; aType, aCount: Word);
+    procedure HouseTownHallMaxGold(aHouseID: Integer; aMaxGold: Integer);
     procedure HouseUnlock(aPlayer, aHouseType: Word);
     procedure HouseWoodcutterChopOnly(aHouseID: Integer; aChopOnly: Boolean);
+    procedure HouseWoodcutterMode(aHouseID: Integer; aWoodcutterMode: Byte);
     procedure HouseWareBlock(aHouseID, aWareType: Integer; aBlocked: Boolean);
     procedure HouseWeaponsOrderSet(aHouseID, aWareType, aAmount: Integer);
 
@@ -160,7 +162,8 @@ uses
   TypInfo, KM_AI, KM_Game, KM_FogOfWar, KM_HandsCollection, KM_Units_Warrior, KM_HandLogistics,
   KM_HouseBarracks, KM_HouseSchool, KM_ResUnits, KM_Log, KM_CommonUtils, KM_HouseMarket,
   KM_Resource, KM_UnitTaskSelfTrain, KM_Hand, KM_AIDefensePos, KM_CommonClasses,
-  KM_UnitsCollection, KM_PathFindingRoad, KM_ResMapElements, KM_BuildList;
+  KM_UnitsCollection, KM_PathFindingRoad, KM_ResMapElements, KM_BuildList,
+  KM_HouseWoodcutters, KM_HouseTownHall;
 
 const
   MIN_SOUND_AT_LOC_RADIUS = 28;
@@ -1935,6 +1938,28 @@ begin
 end;
 
 
+//* Version: 7000+
+//* Set TownHall Max Gold parameter (how many gold could be delivered in it)
+procedure TKMScriptActions.HouseTownHallMaxGold(aHouseID: Integer; aMaxGold: Integer);
+var
+  H: TKMHouse;
+begin
+  try
+    if (aHouseID > 0) and InRange(aMaxGold, 0, High(Word)) then
+    begin
+      H := fIDCache.GetHouse(aHouseID);
+      if H is TKMHouseTownHall then
+        TKMHouseTownHall(H).SetGoldMaxCnt(aMaxGold, True);
+    end
+    else
+      LogParamWarning('Actions.HouseTownHallMaxGold', [aHouseID, aMaxGold]);
+  except
+    gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
+    raise;
+  end;
+end;
+
+
 //* Version: 5057
 //* Enables house repair for the specified house
 procedure TKMScriptActions.HouseRepairEnable(aHouseID: Integer; aRepairEnabled: Boolean);
@@ -1984,14 +2009,19 @@ end;
 
 //* Version: 7000+
 //* Sets delivery mode for the specified house
+//* Possible values for aDeliveryMode parameter:
+//* 0 - Delivery closed
+//* 1 - Delivery allowed
+//* 2 - Take resource out
 procedure TKMScriptActions.HouseDeliveryMode(aHouseID: Integer; aDeliveryMode: Byte);
 var H: TKMHouse;
 begin
   try
-    if aHouseID > 0 then
+    if (aHouseID > 0) and (aDeliveryMode <= Byte(High(TDeliveryMode))) then
     begin
       H := fIDCache.GetHouse(aHouseID);
-      if (H <> nil) and gRes.Houses[H.HouseType].AcceptsWares then
+      if (H <> nil)
+        and gRes.Houses[H.HouseType].AcceptsWares then
         H.SetDeliveryModeInstantly(TDeliveryMode(aDeliveryMode));
     end
     else
@@ -2029,7 +2059,7 @@ end;
 //* Sets whether a woodcutter's hut is on chop-only mode
 procedure TKMScriptActions.HouseWoodcutterChopOnly(aHouseID: Integer; aChopOnly: Boolean);
 const
-  CHOP_ONLY: array [Boolean] of TWoodcutterMode = (wcm_ChopAndPlant, wcm_Chop);
+  CHOP_ONLY: array [Boolean] of TKMWoodcutterMode = (wcm_ChopAndPlant, wcm_Chop);
 var
   H: TKMHouse;
 begin
@@ -2042,6 +2072,32 @@ begin
     end
     else
       LogParamWarning('Actions.HouseWoodcutterChopOnly', [aHouseID, Byte(aChopOnly)]);
+  except
+    gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
+    raise;
+  end;
+end;
+
+
+//* Version: 7000+
+//* Sets woodcutter's hut woodcutter mode
+//* Possible values for aWoodcutterMode parameter are:
+//* 0 - Chop And Plant
+//* 1 - Chop only
+//* 2 - Plant only
+procedure TKMScriptActions.HouseWoodcutterMode(aHouseID: Integer; aWoodcutterMode: Byte);
+var
+  H: TKMHouse;
+begin
+  try
+    if (aHouseID > 0) and (aWoodcutterMode <= Byte(High(TKMWoodcutterMode))) then
+    begin
+      H := fIDCache.GetHouse(aHouseID);
+      if H is TKMHouseWoodcutters then
+        TKMHouseWoodcutters(H).WoodcutterMode := TKMWoodcutterMode(aWoodcutterMode);
+    end
+    else
+      LogParamWarning('Actions.HouseWoodcutterMode', [aHouseID, Byte(aWoodcutterMode)]);
   except
     gScriptEvents.ExceptionOutsideScript := True; //Don't blame script for this exception
     raise;

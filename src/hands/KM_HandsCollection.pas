@@ -63,6 +63,7 @@ type
     procedure SyncFogOfWar;
     procedure AddDefaultGoalsToAll(aMissionMode: TKMissionMode);
     procedure DisableGoalsForDefeatedHand(aHandIndex: TKMHandIndex);
+    procedure PostLoadMission;
 
     procedure Save(SaveStream: TKMemoryStream; aMultiplayer: Boolean);
     procedure Load(LoadStream: TKMemoryStream);
@@ -364,6 +365,15 @@ begin
     if Result = nil then
       Result := GetGroupByUID(aUID);
   end;
+end;
+
+
+procedure TKMHandsCollection.PostLoadMission;
+var
+  I: Integer;
+begin
+  for I := 0 to fCount - 1 do
+    fHandsList[I].PostLoadMission;
 end;
 
 

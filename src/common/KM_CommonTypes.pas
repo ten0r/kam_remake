@@ -33,6 +33,7 @@ type
   TPointEventFunc = function (Sender: TObject; const X,Y: Integer): Boolean of object;
   TBooleanEvent = procedure (aValue: Boolean) of object;
   TIntegerEvent = procedure (aValue: Integer) of object;
+  TObjectIntegerEvent = procedure (Sender: TObject; X: Integer) of object;
   TSingleEvent = procedure (aValue: Single) of object;
   TUnicodeStringEvent = procedure (const aData: UnicodeString) of object;
   TUnicodeStringBoolEvent = procedure (const aData: UnicodeString; aBool: Boolean) of object;

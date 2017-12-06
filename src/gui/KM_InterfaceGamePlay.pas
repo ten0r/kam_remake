@@ -301,10 +301,11 @@ type
 implementation
 uses
   KM_Main, KM_GameInputProcess, KM_GameInputProcess_Multi, KM_AI, KM_RenderUI, KM_GameCursor, KM_Maps,
-  KM_HandsCollection, KM_Hand, KM_RenderPool, KM_ResTexts, KM_Game, KM_GameApp, KM_HouseBarracks, KM_Utils,
+  KM_HandsCollection, KM_Hand, KM_RenderPool, KM_ResTexts, KM_Game, KM_GameApp, KM_HouseBarracks, KM_HouseTownHall,
+  KM_Utils,
   KM_CommonUtils, KM_ResLocales, KM_ResSound, KM_Resource, KM_Log, KM_ResCursors, KM_ResFonts, KM_ResKeys,
   KM_ResSprites, KM_ResUnits, KM_ResWares, KM_FogOfWar, KM_Sound, KM_NetPlayersList, KM_MessageLog, KM_NetworkTypes,
-  KM_InterfaceMapEditor;
+  KM_InterfaceMapEditor, KM_HouseWoodcutters;
 
 const ALLIES_ROWS = 7;
       PANEL_ALLIES_WIDTH = 810;
@@ -653,12 +654,15 @@ begin
     end;
   end;
   if ((gMySpectator.Selected is TKMHouseBarracks) or (gMySpectator.Selected is TKMHouseWoodcutters)) and not fPlacingBeacon
-  and (fUIMode in [umSP, umMP]) and not HasLostMPGame then
+    and (fUIMode in [umSP, umMP]) and not HasLostMPGame then
   begin
     if gTerrain.Route_CanBeMade(TKMHouse(gMySpectator.Selected).PointBelowEntrance, Loc, tpWalk, 0) then
     begin
       if gMySpectator.Selected is TKMHouseBarracks then
         gGame.GameInputProcess.CmdHouse(gic_HouseBarracksRally, TKMHouse(gMySpectator.Selected), Loc)
+      else
+      if gMySpectator.Selected is TKMHouseTownHall then
+        gGame.GameInputProcess.CmdHouse(gic_HouseTownHallRally, TKMHouse(gMySpectator.Selected), Loc)
       else
         if gMySpectator.Selected is TKMHouseWoodcutters then
           gGame.GameInputProcess.CmdHouse(gic_HouseWoodcuttersCutting, TKMHouse(gMySpectator.Selected), Loc);
@@ -3415,13 +3419,20 @@ begin
           Exit; // Don't order troops too
         end;
 
-        if ((gMySpectator.Selected is TKMHouseBarracks) or (gMySpectator.Selected is TKMHouseWoodcutters)) and not fPlacingBeacon
-        and (fUIMode in [umSP, umMP]) and not HasLostMPGame then
+        if not fPlacingBeacon
+          and ((gMySpectator.Selected is TKMHouseBarracks)
+            or (gMySpectator.Selected is TKMHouseTownHall)
+            or (gMySpectator.Selected is TKMHouseWoodcutters))
+          and (fUIMode in [umSP, umMP])
+          and not HasLostMPGame then
         begin
           if gTerrain.Route_CanBeMade(TKMHouse(gMySpectator.Selected).PointBelowEntrance, P, tpWalk, 0) then
           begin
             if gMySpectator.Selected is TKMHouseBarracks then
               gGame.GameInputProcess.CmdHouse(gic_HouseBarracksRally, TKMHouse(gMySpectator.Selected), P)
+            else
+            if gMySpectator.Selected is TKMHouseTownHall then
+              gGame.GameInputProcess.CmdHouse(gic_HouseTownHallRally, TKMHouse(gMySpectator.Selected), P)
             else
               if gMySpectator.Selected is TKMHouseWoodcutters then
                 gGame.GameInputProcess.CmdHouse(gic_HouseWoodcuttersCutting, TKMHouse(gMySpectator.Selected), P);

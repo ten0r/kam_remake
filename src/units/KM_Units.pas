@@ -279,7 +279,7 @@ implementation
 uses
   KM_CommonTypes, KM_Game, KM_RenderPool, KM_RenderAux, KM_ResTexts, KM_ScriptingEvents,
   KM_HandsCollection, KM_FogOfWar, KM_Units_Warrior, KM_Resource, KM_ResUnits, KM_HouseInn,
-  KM_Hand,
+  KM_Hand, KM_HouseWoodcutters,
 
   KM_UnitActionAbandonWalk,
   KM_UnitActionFight,
@@ -539,7 +539,10 @@ begin
     ht_CoalMine:    Msg := TX_MSG_COAL_DEPLETED;
     ht_IronMine:    Msg := TX_MSG_IRON_DEPLETED;
     ht_GoldMine:    Msg := TX_MSG_GOLD_DEPLETED;
-    ht_Woodcutters: Msg := TX_MSG_WOODCUTTER_DEPLETED;
+    ht_Woodcutters: if TKMHouseWoodcutters(fHome).WoodcutterMode = wcm_Plant then
+                      Msg := TX_MSG_WOODCUTTER_PLANT_DEPLETED
+                    else
+                      Msg := TX_MSG_WOODCUTTER_DEPLETED;
     ht_FisherHut:   if not gTerrain.CanFindFishingWater(fHome.PointBelowEntrance, gRes.Units[fUnitType].MiningRange) then
                       Msg := TX_MSG_FISHERMAN_TOO_FAR
                     else
@@ -547,7 +550,7 @@ begin
     else            Msg := 0;
   end;
 
-  Assert(Msg <> 0, gRes.Houses[fHome.HouseType].HouseName+' resource cant possibly deplet');
+  Assert(Msg <> 0, gRes.Houses[fHome.HouseType].HouseName + ' resource cant possibly deplet');
 
   gGame.ShowMessage(mkHouse, Msg, fHome.Entrance, fOwner);
   fHome.ResourceDepletedMsgIssued := True;
